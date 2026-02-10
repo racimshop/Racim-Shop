@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -10,20 +9,17 @@
     <style>
         :root { --primary: #2563eb; --danger: #ef4444; --success: #10b981; --dark: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; direction: rtl; }
-        .container { max-width: 1100px; margin: auto; }
+        .container { max-width: 1200px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); }
+        input, button, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:hover { opacity: 0.8; }
         table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #f8fafc; color: var(--dark); }
+        th { background: #f8fafc; }
         .p-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; }
         #login-box { max-width: 350px; margin: 100px auto; text-align: center; }
-        .btn-del { background: var(--danger); width: auto; padding: 5px 15px; }
-        .status-low { color: var(--danger); font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
         .new-alert { background: #fef2f2; border: 1px solid #f87171; padding: 10px; border-radius: 8px; color: #991b1b; display: none; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
@@ -38,40 +34,56 @@
 
     <div id="admin-content" style="display:none;">
         <h1 style="text-align:center;">لوحة تحكم Racim Shop 🛒</h1>
-        
         <div id="order-notification" class="new-alert">🔔 طلبية جديدة تلحقت يا رسيم!</div>
 
         <div class="card">
-            <h2>📦 إضافة منتج جديد (يدعم الصور الثقيلة)</h2>
+            <h2>📦 إضافة منتج جديد أو إعلان</h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <input type="text" id="p-name" placeholder="اسم المنتج">
                 <input type="number" id="p-price" placeholder="السعر (DA)">
-                <input type="number" id="p-qty" placeholder="الكمية في الستوك">
-                <input type="file" id="p-file" accept="image/*">
+                
+                <select id="p-cat" onchange="toggleDynamicFields()">
+                    <option value="">-- اختر التصنيف --</option>
+                    <option value="smartphone">📱 هواتف ذكية</option>
+                    <option value="clothing">👕 ملابس</option>
+                    <option value="shoes">👟 أحذية</option>
+                    <option value="electro">⚡ كهرومنزلي</option>
+                    <option value="banner">🚩 إعلان كبير (Banner)</option>
+                </select>
+
+                <select id="img-choice" onchange="toggleImgInput()">
+                    <option value="upload">تحميل صورة (Upload)</option>
+                    <option value="link">رابط صورة جاهز (Link)</option>
+                    <option value="none">بدون صورة (None)</option>
+                </select>
+
+                <div id="img-input-container" style="grid-column: span 2;">
+                    <input type="file" id="p-file" accept="image/*">
+                </div>
+
+                <div id="extra-fields" style="grid-column: span 2;"></div>
+                
+                <input type="number" id="p-qty" placeholder="الكمية">
             </div>
-            <button id="upload-btn" onclick="uploadAndAdd()" style="background: var(--success);">نشر في المتجر 🚀</button>
-            <p id="status" style="text-align:center; font-weight:bold; color: var(--primary);"></p>
+            <button onclick="smartAdd()" style="background: var(--success);">نشر الآن 🚀</button>
+            <p id="status" style="text-align:center; font-weight:bold; color:var(--primary)"></p>
         </div>
 
-        <div class="card" style="border-right: 5px solid var(--primary);">
+        <div class="card">
             <h2>🛍️ الطلبيات الحالية</h2>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead>
-                        <tr><th>الزبون</th><th>الهاتف</th><th>السلعة</th><th>المجموع</th><th>التحكم</th></tr>
-                    </thead>
+                    <thead><tr><th>الزبون</th><th>العنوان</th><th>السلعة</th><th>المجموع</th><th>التحكم</th></tr></thead>
                     <tbody id="orders-list"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="card">
-            <h2>🛒 السلعة والستوك</h2>
+            <h2>🛒 إدارة السلعة</h2>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead>
-                        <tr><th>الصورة</th><th>الاسم</th><th>الكمية</th><th>السعر</th><th>التحكم</th></tr>
-                    </thead>
+                    <thead><tr><th>الصورة</th><th>الاسم</th><th>الكمية</th><th>السعر</th><th>التحكم</th></tr></thead>
                     <tbody id="products-list"></tbody>
                 </table>
             </div>
@@ -95,94 +107,103 @@
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
             loadData();
-        } else { alert("كلمة السر غلط!"); }
+        } else { alert("غلط!"); }
     }
 
-    // --- الدالة السحرية لرفع الصور الكبيرة وتصغيرها ---
-    async function uploadAndAdd() {
+    // تبديل خانة الصورة
+    function toggleImgInput() {
+        const choice = document.getElementById('img-choice').value;
+        const container = document.getElementById('img-input-container');
+        if(choice === 'upload') container.innerHTML = '<input type="file" id="p-file" accept="image/*">';
+        else if(choice === 'link') container.innerHTML = '<input type="text" id="p-link" placeholder="حط رابط الصورة هنا">';
+        else container.innerHTML = '<p style="color:gray">سيتم استخدام صورة افتراضية</p>';
+    }
+
+    // تبديل خانات التصنيف (ماركة أو مقاس)
+    function toggleDynamicFields() {
+        const cat = document.getElementById('p-cat').value;
+        const div = document.getElementById('extra-fields');
+        div.innerHTML = '';
+        if(cat === 'smartphone') div.innerHTML = '<select id="p-extra"><option>Apple</option><option>Samsung</option><option>Xiaomi</option><option>Oppo</option><option>Realme</option></select>';
+        else if(cat === 'clothing' || cat === 'shoes') div.innerHTML = '<input type="text" id="p-extra" placeholder="المقاسات المتوفرة (S, M, L / 40, 41..)">';
+    }
+
+    // الإضافة الذكية
+    async function smartAdd() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
+        const cat = document.getElementById('p-cat').value;
         const qty = document.getElementById('p-qty').value;
-        const file = document.getElementById('p-file').files[0];
+        const choice = document.getElementById('img-choice').value;
+        const extra = document.getElementById('p-extra') ? document.getElementById('p-extra').value : "";
         const status = document.getElementById('status');
 
-        if(!name || !price || !qty || !file) return alert("يا رسيم، عمر كلش!");
+        if(!name || !cat) return alert("عمر المعلومات!");
 
-        status.innerText = "جاري تصغير الصورة ورفعها... ⏳";
-        
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function(event) {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1200; 
-                let width = img.width;
-                let height = img.height;
+        status.innerText = "جاري العمل... ⏳";
+        let finalImg = "https://via.placeholder.com/150?text=No+Image";
 
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob(async (blob) => {
-                    const formData = new FormData();
-                    formData.append("image", blob);
-
-                    try {
-                        const res = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {
-                            method: "POST", body: formData
-                        });
-                        const data = await res.json();
-                        if(data.success) {
-                            await db.ref('products').push({ 
-                                name, price, qty: parseInt(qty), img: data.data.url 
-                            });
-                            alert("تمت إضافة المنتج بنجاح! ✅");
-                            location.reload();
-                        }
-                    } catch (e) {
-                        status.innerText = "خطأ في الاتصال! ❌";
-                    }
-                }, 'image/jpeg', 0.8); 
+        try {
+            if(choice === 'upload') {
+                const file = document.getElementById('p-file').files[0];
+                if(file) finalImg = await uploadImage(file);
+            } else if(choice === 'link') {
+                finalImg = document.getElementById('p-link').value;
             }
-        }
+
+            const path = (cat === 'banner') ? 'banners' : 'products';
+            await db.ref(path).push({ name, price, cat, qty: parseInt(qty)||0, extra, img: finalImg });
+            alert("تم بنجاح! ✅");
+            location.reload();
+        } catch(e) { status.innerText = "خطأ! ❌"; }
+    }
+
+    // رفع وتصغير الصورة
+    async function uploadImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 1000;
+                    let w = img.width, h = img.height;
+                    if(w > MAX) { h *= MAX/w; w = MAX; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(async (blob) => {
+                        const fd = new FormData();
+                        fd.append("image", blob);
+                        const res = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {method:"POST", body:fd});
+                        const data = await res.json();
+                        resolve(data.data.url);
+                    }, 'image/jpeg', 0.7);
+                }
+            }
+        });
     }
 
     function loadData() {
         db.ref('orders').on('value', snap => {
-            const list = document.getElementById('orders-list');
-            list.innerHTML = '';
-            if (snap.exists() && !isFirstLoad) {
-                document.getElementById('order-sound').play();
-                document.getElementById('order-notification').style.display = 'block';
-            }
+            const list = document.getElementById('orders-list'); list.innerHTML = '';
+            if(snap.exists() && !isFirstLoad) { document.getElementById('order-sound').play(); document.getElementById('order-notification').style.display='block'; }
             snap.forEach(c => {
                 const o = c.val();
-                let items = o.items.map(i => i.name).join(' + ');
-                list.innerHTML += `<tr><td>${o.customer}</td><td><b>${o.phone}</b></td><td>${items}</td><td>${o.total} DA</td><td><button onclick="delItem('orders/${c.key}')" style="background:green;">تم ✅</button></td></tr>`;
+                list.innerHTML += `<tr><td>${o.customer}</td><td>${o.wilaya}</td><td>${o.items.length} قطع</td><td>${o.total} DA</td><td><button onclick="delItem('orders/${c.key}')" style="background:green">تم</button></td></tr>`;
             });
             isFirstLoad = false;
         });
-
         db.ref('products').on('value', snap => {
-            const list = document.getElementById('products-list');
-            list.innerHTML = '';
+            const list = document.getElementById('products-list'); list.innerHTML = '';
             snap.forEach(c => {
                 const p = c.val();
-                list.innerHTML += `<tr><td><img src="${p.img}" class="p-img"></td><td>${p.name}</td><td class="${p.qty < 3 ? 'status-low' : ''}">${p.qty} حبة</td><td>${p.price} DA</td><td><button class="btn-del" onclick="delItem('products/${c.key}')">حذف</button></td></tr>`;
+                list.innerHTML += `<tr><td><img src="${p.img}" class="p-img"></td><td>${p.name}</td><td>${p.qty}</td><td>${p.price} DA</td><td><button onclick="delItem('products/${c.key}')" style="background:red">حذف</button></td></tr>`;
             });
         });
     }
-
-    function delItem(path) { if(confirm("هل أنت متأكد؟")) db.ref(path).remove(); }
+    function delItem(path) { if(confirm("حذف؟")) db.ref(path).remove(); }
 </script>
 </body>
 </html>
-
