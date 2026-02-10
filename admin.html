@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم رسيم | Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --main: #1e293b; --accent: #f59e0b; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1000px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background: var(--main); color: white; }
+        .btn { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .status { font-weight: bold; }
+        .pending { color: #f59e0b; }
+        .verified { color: #10b981; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1 style="text-align: center;">🛡️ إدارة مستخدمي Racim Shop</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>الاسم</th>
+                <th>الإيميل</th>
+                <th>الهاتف</th>
+                <th>النوع</th>
+                <th>الحالة</th>
+                <th>تفعيل</th>
+            </tr>
+        </thead>
+        <tbody id="users-list">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // الإعدادات تاعك يا رسيم
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
+        authDomain: "racimshop-60fb0.firebaseapp.com",
+        projectId: "racimshop-60fb0",
+        storageBucket: "racimshop-60fb0.firebasestorage.app",
+        messagingSenderId: "1049057013675",
+        appId: "1:1049057013675:web:b0cf22da97e39e0e4b6cee",
+        databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // جلب المستخدمين وعرضهم
+    db.ref('users').on('value', (snap) => {
+        const users = snap.val();
+        const tbody = document.getElementById('users-list');
+        tbody.innerHTML = "";
+
+        for(let id in users) {
+            const u = users[id];
+            tbody.innerHTML += `
+                <tr>
+                    <td>${u.name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.phone}</td>
+                    <td>${u.role === 'seller' ? 'بائع' : 'مشتري'}</td>
+                    <td class="status ${u.verified ? 'verified' : 'pending'}">
+                        ${u.verified ? '✅ مفعّل' : '⏳ ينتظر'}
+                    </td>
+                    <td>
+                        ${!u.verified ? `<button class="btn" onclick="verify('${id}')">تفعيل الآن</button>` : '---'}
+                    </td>
+                </tr>
+            `;
+        }
+    });
+
+    // دالة التفعيل بضغطة زر
+    function verify(uid) {
+        db.ref('users/' + uid).update({ verified: true })
+          .then(() => alert("تم تفعيل المستخدم بنجاح!"));
+    }
+</script>
+
+</body>
+</html>
