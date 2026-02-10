@@ -1,172 +1,145 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Racim Shop | المتجر الرسمي</title>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <style>
         :root { --dark: #0f172a; --blue: #2563eb; --green: #10b981; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; text-align: center; color: var(--dark); }
-        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; }
+        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 24px; font-weight: bold; color: #f59e0b; }
-        .container { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .container { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .btn-blue { background: var(--blue); color: white; }
         .btn-green { background: var(--green); color: white; }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
         .hidden { display: none !important; }
-        
-        /* Shop Styles */
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; padding: 30px 5%; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .card:hover { transform: scale(1.02); }
-        .card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
-        .price { color: var(--blue); font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 150px; object-fit: contain; }
+        .price { color: var(--blue); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo">Racim Shop 🛒</div>
-        <div id="nav-info" class="hidden">
-            <button onclick="logout()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">خروج</button>
-        </div>
-    </nav>
+<nav>
+    <div class="logo">Racim Shop 🛒</div>
+    <div id="nav-info" class="hidden">
+        <button onclick="logout()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:8px;">خروج</button>
+    </div>
+</nav>
 
-    <div id="auth-section">
-        <div id="login-box" class="container">
-            <h2>تسجيل الدخول</h2>
-            <input type="email" id="l-email" placeholder="البريد الإلكتروني">
-            <input type="password" id="l-pass" placeholder="كلمة السر">
-            <button class="btn btn-blue" onclick="signIn()">دخول للمتجر</button>
-            <p style="margin-top:20px;">ما عندكش حساب؟ <a href="#" onclick="toggleUI(true)" style="color:var(--blue); font-weight:bold;">سجل الآن</a></p>
-        </div>
-
-        <div id="reg-box" class="container hidden">
-            <h2>إنشاء حساب جديد</h2>
-            <select id="r-role">
-                <option value="buyer">أنا مشتري</option>
-                <option value="seller">أنا بائع</option>
-            </select>
-            <input type="text" id="r-name" placeholder="الاسم الكامل">
-            <input type="email" id="r-email" placeholder="البريد الإلكتروني">
-            <input type="tel" id="r-phone" placeholder="رقم الهاتف">
-            <input type="password" id="r-pass" placeholder="كلمة السر">
-            <button class="btn btn-green" onclick="signUp()">إرسال طلب التفعيل</button>
-            <p style="margin-top:20px;">عندك حساب؟ <a href="#" onclick="toggleUI(false)" style="color:var(--blue); font-weight:bold;">سجل دخولك</a></p>
-        </div>
+<div id="auth-section">
+    <div id="login-box" class="container">
+        <h2>تسجيل الدخول</h2>
+        <input type="email" id="l-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="l-pass" placeholder="كلمة السر">
+        <button class="btn btn-blue" onclick="signIn()">دخول للمتجر</button>
+        <p>ما عندكش حساب؟ <a href="#" onclick="toggleUI(true)">سجل الآن</a></p>
     </div>
 
-    <div id="shop-section" class="hidden">
-        <div style="padding: 40px 20px;">
-            <h1 style="margin:0;">مرحباً بك، <span id="user-display" style="color:var(--blue);"></span>!</h1>
-            <p style="color:#64748b;">استكشف أحدث المنتجات المتوفرة</p>
-        </div>
-        <div class="product-grid" id="p-grid">
-            </div>
+    <div id="reg-box" class="container hidden">
+        <h2>إنشاء حساب</h2>
+        <input type="text" id="r-name" placeholder="الاسم الكامل">
+        <input type="email" id="r-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="r-pass" placeholder="كلمة السر">
+        <button class="btn btn-green" onclick="signUp()">فتح حساب</button>
+        <p>عندك حساب؟ <a href="#" onclick="toggleUI(false)">سجل دخول</a></p>
     </div>
+</div>
+<div id="shop-section" class="hidden">
+    <h1>مرحباً بك، <span id="user-display"></span>!</h1>
+    <div class="product-grid" id="p-grid"></div>
+</div>
 
-    <script>
-        // الـ Config الخاصة بك يا رسيم
-        const firebaseConfig = {
-            apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
-            authDomain: "racimshop-60fb0.firebaseapp.com",
-            projectId: "racimshop-60fb0",
-            storageBucket: "racimshop-60fb0.firebasestorage.app",
-            messagingSenderId: "1049057013675",
-            appId: "1:1049057013675:web:b0cf22da97e39e0e4b6cee",
-            measurementId: "G-783KMT1DLV",
-            databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
-        };
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
+        authDomain: "racimshop-60fb0.firebaseapp.com",
+        projectId: "racimshop-60fb0",
+        storageBucket: "racimshop-60fb0.firebasestorage.app",
+        messagingSenderId: "1049057013675",
+        appId: "1:1049057013675:web:b0cf22da97e39e0e4b6cee",
+        databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com/"
+    };
 
-        // تفعيل Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function toggleUI(isReg) {
+        document.getElementById('reg-box').classList.toggle('hidden', !isReg);
+        document.getElementById('login-box').classList.toggle('hidden', isReg);
+    }
+
+    function signUp() {
+        const email = document.getElementById('r-email').value;
+        const pass = document.getElementById('r-pass').value;
+        const name = document.getElementById('r-name').value;
+        auth.createUserWithEmailAndPassword(email, pass).then(res => {
+            db.ref('users/' + res.user.uid).set({
+                uid: res.user.uid, name: name, email: email, role: 'user'
+            }).then(() => alert("تم إنشاء الحساب بنجاح!"));
+        }).catch(err => alert(err.message));
+    }
+
+    function signIn() {
+        const email = document.getElementById('l-email').value;
+        const pass = document.getElementById('l-pass').value;
+        auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+    }
+
+    function logout() { auth.signOut().then(() => location.reload()); }
+
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            db.ref('users/' + user.uid).once('value').then(snap => {
+                const userData = snap.val();
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('shop-section').classList.remove('hidden');
+                document.getElementById('nav-info').classList.remove('hidden');
+                document.getElementById('user-display').innerText = userData.name;
+                loadProducts();
+            });
         }
-        const auth = firebase.auth();
-        const db = firebase.database();
+    });
 
-        // وظائف الواجهة
-        function toggleUI(isReg) {
-            document.getElementById('reg-box').classList.toggle('hidden', !isReg);
-            document.getElementById('login-box').classList.toggle('hidden', isReg);
+    // دالة تجلب السلع من Firebase وتضعها في السيت
+function loadProducts() {
+    const grid = document.getElementById('p-grid'); // هذا هو المكان اللي يتحط فيه السلعة
+    
+    // نفتحو اتصال مع قسم المنتجات في Firebase
+    db.ref('products').on('value', (snapshot) => {
+        grid.innerHTML = ''; // نفرغو الصفحة قبل ما نعمروها باش ما تكررش السلعة
+        
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                const product = childSnapshot.val();
+                
+                // هنا نصممو كيفاش تبان الكارت تاع المنتج
+                grid.innerHTML += `
+                    <div class="product-card" style="border: 1px solid #ddd; padding: 15px; border-radius: 10px; background: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <img src="${product.img}" alt="${product.name}" style="width: 100%; height: 150px; object-fit: contain; margin-bottom: 10px;">
+                        <h3 style="font-size: 18px; margin: 10px 0;">${product.name}</h3>
+                        <p style="color: #2563eb; font-weight: bold; font-size: 20px;">${product.price} DA</p>
+                        <button onclick="addToCart('${product.name}')" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%;">إضافة للسلة</button>
+                    </div>
+                `;
+            });
+        } else {
+            grid.innerHTML = "<p>لا توجد منتجات حالياً، انتظرنا قريباً!</p>";
         }
+    });
+}
 
-        // إنشاء حساب
-        function signUp() {
-            const email = document.getElementById('r-email').value;
-            const pass = document.getElementById('r-pass').value;
-            const name = document.getElementById('r-name').value;
-            if(!email || !pass || !name) return alert("يرجى ملء جميع الخانات!");
-
-            auth.createUserWithEmailAndPassword(email, pass).then(res => {
-                db.ref('users/' + res.user.uid).set({
-                    uid: res.user.uid,
-                    name: name,
-                    email: email,
-                    phone: document.getElementById('r-phone').value,
-                    role: document.getElementById('r-role').value,
-                    verified: false // رسيم هو اللي يفعله
-                }).then(() => {
-                    alert("تم إرسال طلبك! استنى رسيم يفعل حسابك.");
-                    auth.signOut();
-                    location.reload();
-                });
-            }).catch(err => alert("خطأ في التسجيل: " + err.message));
-        }
-
-        // تسجيل الدخول
-        function signIn() {
-            const email = document.getElementById('l-email').value;
-            const pass = document.getElementById('l-pass').value;
-            auth.signInWithEmailAndPassword(email, pass).catch(err => alert("خطأ: " + err.message));
-        }
-
-        function logout() { auth.signOut().then(() => location.reload()); }
-
-        // مراقبة حالة الدخول
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                db.ref('users/' + user.uid).once('value').then(snap => {
-                    const userData = snap.val();
-                    if(userData && userData.verified) {
-                        document.getElementById('auth-section').classList.add('hidden');
-                        document.getElementById('shop-section').classList.remove('hidden');
-                        document.getElementById('nav-info').classList.remove('hidden');
-                        document.getElementById('user-display').innerText = userData.name;
-                        loadProducts();
-                    } else {
-                        alert("عذراً، حسابك لم يتفعل بعد من قبل الإدارة.");
-                        auth.signOut();
-                    }
-                });
-            }
-        });
-
-        // عرض المنتجات
-        function loadProducts() {
-            const products = [
-                {id: 1, name: "iPhone 15 Pro Max", price: "235,000 DA", img: "https://m.media-amazon.com/images/I/81Sig6biNGL._AC_SL1500_.jpg"},
-                {id: 2, name: "PlayStation 5 Slim", price: "115,000 DA", img: "https://m.media-amazon.com/images/I/51051HiS9OL._AC_SL1500_.jpg"},
-                {id: 3, name: "AirPods Pro 2", price: "45,000 DA", img: "https://m.media-amazon.com/images/I/61f1YfTQIPL._AC_SL1500_.jpg"}
-            ];
-            
-            const grid = document.getElementById('p-grid');
-            grid.innerHTML = products.map(p => `
-                <div class="card">
-                    <img src="${p.img}" alt="${p.name}">
-                    <h3>${p.name}</h3>
-                    <p class="price">${p.price}</p>
-                    <button class="btn btn-blue">إضافة إلى السلة</button>
-                </div>
-            `).join('');
-        }
-    </script>
+// تشغيل الدالة تلقائياً عند فتح السيت
+loadProducts();
+</script>
 </body>
 </html>
