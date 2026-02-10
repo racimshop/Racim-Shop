@@ -2,44 +2,52 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم رسيم | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم رسيم | Racim Admin</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --main: #1e293b; --accent: #f59e0b; }
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1000px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
-        th { background: var(--main); color: white; }
-        .btn { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
-        .status { font-weight: bold; }
-        .pending { color: #f59e0b; }
-        .verified { color: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { color: #1e293b; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; }
+        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
+        th { background: #f8fafc; color: #64748b; }
+        .user-row:hover { background: #f1f5f9; }
+        .badge { background: #10b981; color: white; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1 style="text-align: center;">🛡️ إدارة مستخدمي Racim Shop</h1>
+<div class="container">
+    <h2>📦 إضافة منتج جديد</h2>
+    <input type="text" id="p-name" placeholder="اسم المنتج (مثال: iPhone 16)">
+    <input type="text" id="p-price" placeholder="السعر (DA)">
+    <input type="text" id="p-img" placeholder="رابط صورة المنتج">
+    <button onclick="addProduct()">إضافة للمتجر</button>
+
+    <hr style="margin: 40px 0;">
+
+    <h2>👥 قائمة المستخدمين (الزبائن)</h2>
     <table>
         <thead>
             <tr>
                 <th>الاسم</th>
-                <th>الإيميل</th>
-                <th>الهاتف</th>
-                <th>النوع</th>
+                <th>البريد الإلكتروني</th>
+                <th>رقم الهاتف</th>
                 <th>الحالة</th>
-                <th>تفعيل</th>
             </tr>
         </thead>
-        <tbody id="users-list">
+        <tbody id="users-table">
             </tbody>
     </table>
 </div>
 
 <script>
-    // الإعدادات تاعك يا رسيم
+    // Config تاعك يا رسيم (تأكد أنها نفس اللي في index.html)
     const firebaseConfig = {
         apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
         authDomain: "racimshop-60fb0.firebaseapp.com",
@@ -53,36 +61,46 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // جلب المستخدمين وعرضهم
-    db.ref('users').on('value', (snap) => {
-        const users = snap.val();
-        const tbody = document.getElementById('users-list');
-        tbody.innerHTML = "";
+    // دالة إضافة المنتج
+    function addProduct() {
+        const name = document.getElementById('p-name').value;
+        const price = document.getElementById('p-price').value;
+        const img = document.getElementById('p-img').value;
 
-        for(let id in users) {
-            const u = users[id];
-            tbody.innerHTML += `
-                <tr>
-                    <td>${u.name}</td>
-                    <td>${u.email}</td>
-                    <td>${u.phone}</td>
-                    <td>${u.role === 'seller' ? 'بائع' : 'مشتري'}</td>
-                    <td class="status ${u.verified ? 'verified' : 'pending'}">
-                        ${u.verified ? '✅ مفعّل' : '⏳ ينتظر'}
-                    </td>
-                    <td>
-                        ${!u.verified ? `<button class="btn" onclick="verify('${id}')">تفعيل الآن</button>` : '---'}
-                    </td>
-                </tr>
-            `;
-        }
-    });
+        if(!name || !price || !img) return alert("عمر قاع الخانات يا رسيم!");
 
-    // دالة التفعيل بضغطة زر
-    function verify(uid) {
-        db.ref('users/' + uid).update({ verified: true })
-          .then(() => alert("تم تفعيل المستخدم بنجاح!"));
+        db.ref('products').push({
+            name: name,
+            price: price,
+            img: img
+        }).then(() => {
+            alert("تمت إضافة السلعة بنجاح!");
+            location.reload();
+        });
     }
+
+    // دالة جلب المستخدمين من Firebase
+    function loadUsers() {
+        db.ref('users').on('value', (snap) => {
+            const tableBody = document.getElementById('users-table');
+            tableBody.innerHTML = ''; // نفرغ الجدول قبل التحديث
+            
+            snap.forEach((child) => {
+                const user = child.val();
+                tableBody.innerHTML += `
+                    <tr class="user-row">
+                        <td>${user.name || 'بدون اسم'}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'غير مسجل'}</td>
+                        <td><span class="badge">نشط</span></td>
+                    </tr>
+                `;
+            });
+        });
+    }
+
+    // تشغيل جلب المستخدمين عند فتح الصفحة
+    loadUsers();
 </script>
 
 </body>
