@@ -9,20 +9,21 @@
     <style>
         :root { --primary: #2563eb; --danger: #ef4444; --success: #10b981; --dark: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; direction: rtl; }
-        .container { max-width: 1000px; margin: auto; }
+        .container { max-width: 1100px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); }
+        h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); display: flex; justify-content: space-between; align-items: center; }
         input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:hover { opacity: 0.8; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
         th { background: #f8fafc; color: var(--dark); }
-        .p-img { width: 50px; height: 50px; object-fit: contain; }
+        .p-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; }
         #login-box { max-width: 350px; margin: 100px auto; text-align: center; }
-        .btn-del { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; }
-        .new-order-anim { animation: blink 1s infinite; color: var(--danger); font-weight: bold; }
-        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
+        .btn-del { background: var(--danger); width: auto; padding: 5px 15px; }
+        .status-low { color: var(--danger); font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+        .new-alert { background: #fef2f2; border: 1px solid #f87171; padding: 10px; border-radius: 8px; color: #991b1b; display: none; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -36,18 +37,23 @@
 
     <div id="admin-content" style="display:none;">
         <h1 style="text-align:center;">لوحة تحكم Racim Shop 🛒</h1>
+        
+        <div id="order-notification" class="new-alert">🔔 طلبية جديدة تلحقت يا رسيم!</div>
 
         <div class="card">
             <h2>📦 إضافة منتج جديد</h2>
-            <input type="text" id="p-name" placeholder="اسم المنتج">
-            <input type="number" id="p-price" placeholder="السعر (DA)">
-            <input type="file" id="p-file" accept="image/*">
-            <button id="upload-btn" onclick="uploadAndAdd()" style="background: var(--success);">نشر المنتج في المتجر 🚀</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="text" id="p-name" placeholder="اسم المنتج">
+                <input type="number" id="p-price" placeholder="السعر (DA)">
+                <input type="number" id="p-qty" placeholder="الكمية في الستوك">
+                <input type="file" id="p-file" accept="image/*">
+            </div>
+            <button id="upload-btn" onclick="uploadAndAdd()" style="background: var(--success);">نشر في المتجر 🚀</button>
             <p id="status" style="text-align:center; font-weight:bold;"></p>
         </div>
 
-        <div class="card" style="border: 3px solid var(--primary);">
-            <h2>🛍️ الطلبيات (Commandes) <span id="new-alert" class="new-order-anim" style="display:none;">- كاين طلبية جديدة! 🔔</span></h2>
+        <div class="card" style="border-right: 5px solid var(--primary);">
+            <h2>🛍️ الطلبيات الحالية</h2>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
@@ -59,13 +65,27 @@
         </div>
 
         <div class="card">
-            <h2>👥 قائمة الزبائن</h2>
-            <tbody id="users-list">
+            <h2>🛒 السلعة والستوك</h2>
+            <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>الاسم</th><th>الهاتف</th><th>الإيميل</th></tr></thead>
-                    <tbody id="users-list-table"></tbody>
+                    <thead>
+                        <tr><th>الصورة</th><th>الاسم</th><th>الكمية</th><th>السعر</th><th>التحكم</th></tr>
+                    </thead>
+                    <tbody id="products-list"></tbody>
                 </table>
-            </tbody>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👥 قائمة الزبائن المسجلين</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr><th>الاسم</th><th>الهاتف</th><th>الإيميل</th></tr>
+                    </thead>
+                    <tbody id="users-list"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -73,6 +93,7 @@
 <audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
 <script>
+    // إعدادات الـ Firebase تاعك
     const firebaseConfig = {
         apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
         databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
@@ -83,21 +104,23 @@
     let isFirstLoad = true;
 
     function checkAdmin() {
+        // كلمة السر تاعك يا رسيم
         if(document.getElementById('admin-pass').value === "racim123") {
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
             loadData();
-        } else { alert("كلمة السر غلط يا رسيم!"); }
+        } else { alert("كلمة السر غلط!"); }
     }
 
-    // دالة الرفع المسگمة
+    // رفع الصورة وإضافة المنتج
     async function uploadAndAdd() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
+        const qty = document.getElementById('p-qty').value;
         const file = document.getElementById('p-file').files[0];
         const status = document.getElementById('status');
 
-        if(!name || !price || !file) return alert("عمر كلش يا رسيم!");
+        if(!name || !price || !qty || !file) return alert("عمر كلش يا رسيم!");
 
         status.innerText = "جاري الرفع... ⏳";
         const formData = new FormData();
@@ -109,39 +132,65 @@
             });
             const data = await res.json();
             if(data.success) {
-                await db.ref('products').push({ name, price, img: data.data.url });
-                alert("تم بنجاح! ✅");
+                await db.ref('products').push({ 
+                    name, 
+                    price, 
+                    qty: parseInt(qty), 
+                    img: data.data.url 
+                });
+                alert("تمت إضافة المنتج! ✅");
                 location.reload();
-            } else { throw new Error(); }
+            }
         } catch (e) {
-            status.innerText = "خطأ في الرفع! جرب صورة أصغر ❌";
-            status.style.color = "red";
+            status.innerText = "خطأ في الرفع! ❌";
         }
     }
 
     function loadData() {
-        // الطلبيات + صوت التنبيه 🔔
+        // 1. الطلبيات وصوت التنبيه
         db.ref('orders').on('value', snap => {
             const list = document.getElementById('orders-list');
             list.innerHTML = '';
             
             if (snap.exists() && !isFirstLoad) {
                 document.getElementById('order-sound').play();
-                document.getElementById('new-alert').style.display = 'inline';
-                setTimeout(() => { document.getElementById('new-alert').style.display = 'none'; }, 10000);
+                document.getElementById('order-notification').style.display = 'block';
             }
 
             snap.forEach(c => {
                 const o = c.val();
                 let items = o.items.map(i => i.name).join(' + ');
-                list.innerHTML += `<tr><td>${o.customer}</td><td>${o.phone}</td><td>${items}</td><td>${o.total} DA</td><td><button onclick="delItem('orders/${c.key}')" style="background:green;color:white;border:none;padding:5px;border-radius:5px;">تم ✅</button></td></tr>`;
+                list.innerHTML += `<tr>
+                    <td>${o.customer}</td>
+                    <td><b>${o.phone}</b></td>
+                    <td>${items}</td>
+                    <td>${o.total} DA</td>
+                    <td><button onclick="delItem('orders/${c.key}')" style="background:green;">تم ✅</button></td>
+                </tr>`;
             });
             isFirstLoad = false;
         });
 
-        // الزبائن
+        // 2. المنتجات والستوك
+        db.ref('products').on('value', snap => {
+            const list = document.getElementById('products-list');
+            list.innerHTML = '';
+            snap.forEach(c => {
+                const p = c.val();
+                const stockClass = p.qty < 3 ? 'status-low' : '';
+                list.innerHTML += `<tr>
+                    <td><img src="${p.img}" class="p-img"></td>
+                    <td>${p.name}</td>
+                    <td class="${stockClass}">${p.qty} حبة</td>
+                    <td>${p.price} DA</td>
+                    <td><button class="btn-del" onclick="delItem('products/${c.key}')">حذف</button></td>
+                </tr>`;
+            });
+        });
+
+        // 3. الزبائن
         db.ref('users').on('value', snap => {
-            const list = document.getElementById('users-list-table');
+            const list = document.getElementById('users-list');
             list.innerHTML = '';
             snap.forEach(c => {
                 const u = c.val();
@@ -150,7 +199,7 @@
         });
     }
 
-    function delItem(path) { if(confirm("حذف؟")) db.ref(path).remove(); }
+    function delItem(path) { if(confirm("هل أنت متأكد؟")) db.ref(path).remove(); }
 </script>
 </body>
 </html>
