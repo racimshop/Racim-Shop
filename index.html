@@ -1,102 +1,233 @@
+أبشر يا رسيم، هاد الكود هو "التحفة" اللي تجمع كلش! راني درتلك فيه Slider (صور الإعلانات اللي يتحركوا)، تقسيم المنتجات حسب التصنيفات، قائمة الـ 58 ولاية، ونظام تأكيد الطلبية بكلمة Confirmer.
+
+📜 كود الواجهة الكامل (index.html)
+HTML
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Racim Shop | المتجر الرسمي</title>
+    <title>Racim Shop | المتجر الرسمي 🛒</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --dark: #0f172a; --blue: #2563eb; --green: #10b981; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; padding-bottom: 50px; }
-        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 24px; font-weight: bold; color: #f59e0b; }
-        .container { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .hidden { display: none !important; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
-        .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
-        .card img { width: 100%; height: 180px; object-fit: contain; border-radius: 10px; }
-        .qty-tag { color: #64748b; font-size: 0.9em; margin-bottom: 5px; display: block; }
-        #cart-sidebar { position: fixed; left: 0; top: 0; width: 300px; height: 100%; background: white; box-shadow: 2px 0 15px rgba(0,0,0,0.2); padding: 20px; z-index: 2000; overflow-y: auto; text-align: right; }
+        :root { --main: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; --dark: #0f172a; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; text-align: center; }
+        
+        /* Navbar */
+        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .logo { font-size: 22px; font-weight: bold; color: var(--accent); }
+        
+        /* Banner Slider */
+        .slider-container { width: 100%; height: 250px; overflow: hidden; position: relative; background: #ddd; }
+        .slider { display: flex; transition: 0.5s; height: 100%; }
+        .slider img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+
+        /* Categories Filter */
+        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; background: white; white-space: nowrap; }
+        .cat-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid var(--main); background: white; cursor: pointer; font-weight: bold; }
+        .cat-btn.active { background: var(--main); color: white; }
+
+        /* Product Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: white; padding: 10px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+        .card img { width: 100%; height: 150px; object-fit: contain; }
+        .price { color: var(--main); font-weight: bold; font-size: 1.1em; }
+        .stock { font-size: 0.8em; color: #64748b; margin-bottom: 5px; }
+        
+        /* Checkout Modal */
+        #checkout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: right; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ccc; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-pay { background: #10b981; color: white; }
+
+        /* Cart Sidebar */
+        #cart-sidebar { position: fixed; left: 0; top: 0; width: 300px; height: 100%; background: white; z-index: 2000; box-shadow: 2px 0 20px rgba(0,0,0,0.2); display: none; padding: 20px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="logo">Racim Shop 🛒</div>
-    <div id="nav-info" class="hidden">
-        <button onclick="toggleCart()" style="background:#f59e0b; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">السلة 🛒 <span id="cart-num">0</span></button>
-        <button onclick="logout()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:8px; margin-right:10px;">خروج</button>
+    <div id="nav-btns">
+        <button onclick="toggleCart()" style="background:var(--accent); border:none; padding:8px 15px; border-radius:8px; cursor:pointer; color:white;">السلة (<span id="cart-count">0</span>)</button>
     </div>
 </nav>
 
-<div id="cart-sidebar" class="hidden">
-    <h3>سلتي 🛒</h3>
-    <div id="cart-items-list"></div>
-    <hr>
-    <h4>المجموع: <span id="cart-total">0</span> DA</h4>
-    <button class="btn btn-green" onclick="sendOrder()">تأكيد الطلبية ✅</button>
-    <button class="btn" style="background:#64748b; color:white; margin-top:10px;" onclick="toggleCart()">إغلاق</button>
+<div class="slider-container">
+    <div class="slider" id="main-slider">
+        </div>
 </div>
 
-<div id="auth-section">
-    </div>
+<div class="categories">
+    <button class="cat-btn active" onclick="filterCat('all', this)">الكل</button>
+    <button class="cat-btn" onclick="filterCat('smartphone', this)">هواتف</button>
+    <button class="cat-btn" onclick="filterCat('clothing', this)">ملابس</button>
+    <button class="cat-btn" onclick="filterCat('shoes', this)">أحذية</button>
+    <button class="cat-btn" onclick="filterCat('electro', this)">كهرومنزلي</button>
+</div>
 
-<div id="shop-section" class="hidden">
-    <h1>مرحباً، <span id="user-display"></span>! 👋</h1>
-    <div class="product-grid" id="p-grid"></div>
+<div class="grid" id="product-grid"></div>
+
+<div id="cart-sidebar">
+    <h3>سلتي 🛍️</h3>
+    <div id="cart-items"></div>
+    <hr>
+    <h4>المجموع: <span id="cart-total">0</span> DA</h4>
+    <button class="btn btn-pay" onclick="openCheckout()">إتمام الطلب ✅</button>
+    <button class="btn" onclick="toggleCart()" style="background:#eee">إغلاق</button>
+</div>
+
+<div id="checkout-modal">
+    <div class="modal-content">
+        <h3>أدخل معلومات الشحن 🚚</h3>
+        <input type="text" id="cust-name" placeholder="الاسم الكامل">
+        <input type="tel" id="cust-phone" placeholder="رقم الهاتف">
+        <select id="cust-wilaya">
+            <option value="">-- اختر الولاية --</option>
+            </select>
+        <input type="text" id="cust-address" placeholder="العنوان الدقيق (البلدية/الحي)">
+        <input type="email" id="cust-email" placeholder="البريد الإلكتروني">
+        <p style="font-size: 0.8em; color: red;">أكتب كلمة <b>Confirmer</b> للتأكيد:</p>
+        <input type="text" id="confirm-text" placeholder="...">
+        <button class="btn btn-pay" onclick="validateOrder()">تأكيد نهائي ✅</button>
+    </div>
 </div>
 
 <script>
-    // ... إعدادات Firebase ...
-    const firebaseConfig = { /* معلوماتك هنا */ };
+    // --- إعدادات Firebase ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
+        databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let cart = [];
 
-    function loadProducts() {
+    let cart = [];
+    const wilayas = ["01-Adrar", "02-Chlef", "03-Laghouat", "04-Oum El Bouaghi", "05-Batna", "06-Béjaïa", "07-Biskra", "08-Béchar", "09-Blida", "10-Bouira", "11-Tamanrasset", "12-Tébessa", "13-Tlemcen", "14-Tiaret", "15-Tizi Ouzou", "16-Alger", "17-Djelfa", "18-Jijel", "19-Sétif", "20-Saïda", "21-Skikda", "22-Sidi Bel Abbès", "23-Annaba", "24-Guelma", "25-Constantine", "26-Médéa", "27-Mostaganem", "28-M'Sila", "29-Mascara", "30-Ouargla", "31-Oran", "32-El Bayadh", "33-Illizi", "34-Bordj Bou Arreridj", "35-Boumerdès", "36-El Tarf", "37-Tindouf", "38-Tissemsilt", "39-El Oued", "40-Khenchela", "41-Souk Ahras", "42-Tipaza", "43-Mila", "44-Aïn Defla", "45-Naâma", "46-Aïn Témouchent", "47-Ghardaïa", "48-Relizane", "49-Timimoun", "50-Bordj Badji Mokhtar", "51-Ouled Djellal", "52-Béni Abbès", "53-In Salah", "54-In Guezzam", "55-Touggourt", "56-Djanet", "57-El M'Ghair", "58-El Meniaa"];
+
+    // ملء قائمة الولايات
+    const wSelect = document.getElementById('cust-wilaya');
+    wilayas.forEach(w => wSelect.innerHTML += `<option value="${w}">${w}</option>`);
+
+    // تحميل الإعلانات (Banners)
+    db.ref('banners').on('value', snap => {
+        const slider = document.getElementById('main-slider');
+        slider.innerHTML = '';
+        snap.forEach(c => {
+            slider.innerHTML += `<img src="${c.val().img}">`;
+        });
+    });
+
+    // تحريك السلايدر تلقائياً
+    let slideIdx = 0;
+    setInterval(() => {
+        const slides = document.querySelectorAll('.slider img');
+        if(slides.length > 0) {
+            slideIdx = (slideIdx + 1) % slides.length;
+            document.getElementById('main-slider').style.transform = `translateX(${slideIdx * 100}%)`;
+        }
+    }, 4000);
+
+    // تحميل المنتجات
+    function loadProducts(filter = 'all') {
         db.ref('products').on('value', snap => {
-            const grid = document.getElementById('p-grid');
+            const grid = document.getElementById('product-grid');
             grid.innerHTML = '';
-            snap.forEach(child => {
-                const p = child.val();
-                const canBuy = p.qty > 0;
+            snap.forEach(c => {
+                const p = c.val();
+                if(filter !== 'all' && p.cat !== filter) return;
+                
+                const outOfStock = p.qty <= 0;
                 grid.innerHTML += `
                     <div class="card">
                         <img src="${p.img}">
-                        <h3>${p.name}</h3>
-                        <span class="qty-tag">${canBuy ? 'متوفر: ' + p.qty + ' حبة' : '<span style="color:red">نفدت الكمية</span>'}</span>
-                        <p style="color:var(--blue); font-weight:bold;">${p.price} DA</p>
-                        <button class="btn btn-blue" onclick="addToCart('${child.key}', '${p.name}', ${p.price}, ${p.qty})" ${!canBuy ? 'disabled style="background:#ccc"' : ''}>
-                            ${canBuy ? 'إضافة للسلة 🛒' : 'غير متوفر'}
+                        <h4>${p.name}</h4>
+                        <div class="stock">${outOfStock ? '<b style="color:red">نفدت</b>' : 'متوفر: '+p.qty}</div>
+                        <div class="price">${p.price} DA</div>
+                        <small>${p.extra || ''}</small>
+                        <button class="btn" style="background:var(--main); color:white; height:40px; font-size:12px;" 
+                            onclick="addToCart('${c.key}', '${p.name}', ${p.price})" ${outOfStock ? 'disabled' : ''}>
+                            ${outOfStock ? 'غير متوفر' : 'أضف للسلة 🛒'}
                         </button>
                     </div>`;
             });
         });
     }
 
-    function addToCart(id, name, price, stock) {
-        const inCart = cart.filter(i => i.id === id).length;
-        if(inCart >= stock) return alert("مكاش كثر من هاد الكمية في الستوك!");
-        cart.push({ id, name, price });
+    function addToCart(id, name, price) {
+        cart.push({id, name, price});
         updateCartUI();
     }
 
-    function sendOrder() {
-        if(cart.length === 0) return alert("سلتك فارغة!");
-        // كود إرسال الطلبية مع إنقاص الكمية من الداتابيز
-        cart.forEach(item => {
-            db.ref('products/' + item.id + '/qty').transaction(currentQty => (currentQty || 0) - 1);
+    function updateCartUI() {
+        document.getElementById('cart-count').innerText = cart.length;
+        const list = document.getElementById('cart-items');
+        list.innerHTML = '';
+        let total = 0;
+        cart.forEach((item, index) => {
+            total += item.price;
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>${item.name}</span>
+                <b>${item.price} DA <span onclick="cart.splice(${index},1); updateCartUI()" style="color:red; cursor:pointer;">❌</span></b>
+            </div>`;
         });
-        // إرسال معلومات الطلبية للآدمن (كما في الكود السابق)
-        // ...
+        document.getElementById('cart-total').innerText = total;
     }
-    // ... باقي الدوال (Login/UI) ...
+
+    function toggleCart() {
+        const s = document.getElementById('cart-sidebar');
+        s.style.display = (s.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function filterCat(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadProducts(cat);
+    }
+
+    function openCheckout() {
+        if(cart.length === 0) return alert("سلتك فارغة!");
+        document.getElementById('checkout-modal').style.display = 'flex';
+    }
+
+    async function validateOrder() {
+        const confirm = document.getElementById('confirm-text').value;
+        const name = document.getElementById('cust-name').value;
+        const phone = document.getElementById('cust-phone').value;
+        const wilaya = document.getElementById('cust-wilaya').value;
+        const address = document.getElementById('cust-address').value;
+
+        if(confirm.toLowerCase() !== 'confirmer') return alert("اكتب كلمة Confirmer للتأكيد!");
+        if(!name || !phone || !wilaya) return alert("عمر معلوماتك يا رسيم!");
+
+        const orderData = {
+            customer: name,
+            phone: phone,
+            wilaya: wilaya,
+            address: address,
+            items: cart,
+            total: document.getElementById('cart-total').innerText,
+            date: new Date().toLocaleString()
+        };
+
+        await db.ref('orders').push(orderData);
+        
+        // نقص الكمية من الستوك
+        cart.forEach(item => {
+            db.ref('products/' + item.id + '/qty').transaction(q => (q || 0) - 1);
+        });
+
+        alert("تم إرسال طلبيتك بنجاح! شكراً لك ✅");
+        cart = [];
+        updateCartUI();
+        location.reload();
+    }
+
+    loadProducts();
 </script>
 </body>
 </html>
