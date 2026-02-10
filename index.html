@@ -1,47 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Racim Shop | المتجر الرسمي 🛒</title>
+    <title>Racim Marketplace | منصة البيع والشراء 🛒</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
-        :root { --main: #2563eb; --accent: #f59e0b; --bg: #f1f5f9; --dark: #0f172a; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; text-align: center; }
+        :root { --main: #2563eb; --vendeur-color: #7c3aed; --bg: #f8fafc; --dark: #1e293b; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; direction: rtl; }
         
-        /* Navbar */
-        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .logo { font-size: 22px; font-weight: bold; color: var(--accent); }
+        /* Header */
+        nav { background: var(--dark); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 24px; font-weight: bold; color: #fbbf24; }
         
-        /* Banner Slider */
-        .slider-container { width: 100%; height: 250px; overflow: hidden; position: relative; background: #ddd; }
-        .slider { display: flex; transition: 0.5s; height: 100%; }
-        .slider img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+        /* Auth Sections */
+        .auth-container { max-width: 500px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; cursor: pointer; background: #e2e8f0; font-weight: bold; }
+        .tab-btn.active { background: var(--main); color: white; }
 
-        /* Categories Filter */
-        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; background: white; white-space: nowrap; }
-        .cat-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid var(--main); background: white; cursor: pointer; font-weight: bold; }
-        .cat-btn.active { background: var(--main); color: white; }
+        /* Forms */
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+        .btn-main { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-vendeur { background: var(--vendeur-color); color: white; }
 
-        /* Product Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; padding: 15px; }
-        .card { background: white; padding: 10px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+        /* Product Display */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: white; padding: 15px; border-radius: 15px; text-align: center; transition: 0.3s; border: 1px solid #eee; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 150px; object-fit: contain; }
-        .price { color: var(--main); font-weight: bold; font-size: 1.1em; }
-        .stock { font-size: 0.8em; color: #64748b; margin-bottom: 5px; }
+        .vendor-tag { font-size: 11px; background: #f1f5f9; padding: 3px 8px; border-radius: 5px; color: #64748b; display: inline-block; margin-top: 5px; }
         
-        /* Checkout Modal */
-        #checkout-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 3000; }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: right; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ccc; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-pay { background: #10b981; color: white; }
-
-        /* Cart Sidebar */
-        #cart-sidebar { position: fixed; left: 0; top: 0; width: 300px; height: 100%; background: white; z-index: 2000; box-shadow: 2px 0 20px rgba(0,0,0,0.2); display: none; padding: 20px; }
+        #main-content { display: none; }
         .hidden { display: none; }
     </style>
 </head>
@@ -49,183 +41,135 @@
 
 <nav>
     <div class="logo">Racim Shop 🛒</div>
-    <div id="nav-btns">
-        <button onclick="toggleCart()" style="background:var(--accent); border:none; padding:8px 15px; border-radius:8px; cursor:pointer; color:white;">السلة (<span id="cart-count">0</span>)</button>
-    </div>
+    <div id="user-info"></div>
 </nav>
 
-<div class="slider-container">
-    <div class="slider" id="main-slider">
+<div id="auth-screen">
+    <div class="auth-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('buyer', this)">مشتري (Acheteur)</button>
+            <button class="tab-btn" onclick="showTab('vendor', this)">بائع (Vendeur)</button>
+        </div>
+
+        <div id="buyer-form">
+            <h3>تسجيل زبون جديد 👋</h3>
+            <input type="text" id="b-name" placeholder="الاسم الكامل">
+            <select id="b-wilaya" class="wilaya-list"></select>
+            <input type="email" id="b-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="b-pass" placeholder="كلمة السر">
+            <button class="btn-main" onclick="register('buyer')">إنشاء حساب مشتري</button>
+        </div>
+
+        <div id="vendor-form" class="hidden">
+            <h3>فتح متجر بائع 🏪</h3>
+            <input type="text" id="v-shop" placeholder="اسم المتجر (مثلاً: Racim Pro)">
+            <input type="text" id="v-name" placeholder="اسم صاحب المحل">
+            <select id="v-wilaya" class="wilaya-list"></select>
+            <input type="email" id="v-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="v-pass" placeholder="كلمة السر">
+            <button class="btn-main btn-vendeur" onclick="register('vendor')">إرسال طلب الانضمام</button>
+            <p style="font-size: 12px; color: #666;">* لن يتم تفعيل متجرك حتى يوافق عليه الأدمن (رسيم).</p>
+        </div>
+    </div>
+</div>
+
+<div id="main-content">
+    <div style="padding: 20px; background: white; border-bottom: 1px solid #eee;">
+        <h2 id="welcome-msg">مرحباً بك في سوقنا</h2>
+        <p id="location-msg" style="color: var(--main); font-weight: bold;"></p>
+    </div>
+
+    <div class="grid" id="product-grid">
         </div>
 </div>
 
-<div class="categories">
-    <button class="cat-btn active" onclick="filterCat('all', this)">الكل</button>
-    <button class="cat-btn" onclick="filterCat('smartphone', this)">هواتف</button>
-    <button class="cat-btn" onclick="filterCat('clothing', this)">ملابس</button>
-    <button class="cat-btn" onclick="filterCat('shoes', this)">أحذية</button>
-    <button class="cat-btn" onclick="filterCat('electro', this)">كهرومنزلي</button>
-</div>
-
-<div class="grid" id="product-grid"></div>
-
-<div id="cart-sidebar">
-    <h3>سلتي 🛍️</h3>
-    <div id="cart-items"></div>
-    <hr>
-    <h4>المجموع: <span id="cart-total">0</span> DA</h4>
-    <button class="btn btn-pay" onclick="openCheckout()">إتمام الطلب ✅</button>
-    <button class="btn" onclick="toggleCart()" style="background:#eee">إغلاق</button>
-</div>
-
-<div id="checkout-modal">
-    <div class="modal-content">
-        <h3>أدخل معلومات الشحن 🚚</h3>
-        <input type="text" id="cust-name" placeholder="الاسم الكامل">
-        <input type="tel" id="cust-phone" placeholder="رقم الهاتف">
-        <select id="cust-wilaya">
-            <option value="">-- اختر الولاية --</option>
-            </select>
-        <input type="text" id="cust-address" placeholder="العنوان الدقيق (البلدية/الحي)">
-        <input type="email" id="cust-email" placeholder="البريد الإلكتروني">
-        <p style="font-size: 0.8em; color: red;">أكتب كلمة <b>Confirmer</b> للتأكيد:</p>
-        <input type="text" id="confirm-text" placeholder="...">
-        <button class="btn btn-pay" onclick="validateOrder()">تأكيد نهائي ✅</button>
-    </div>
-</div>
-
 <script>
-    // --- إعدادات Firebase ---
     const firebaseConfig = {
         apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
         databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
 
-    let cart = [];
     const wilayas = ["01-Adrar", "02-Chlef", "03-Laghouat", "04-Oum El Bouaghi", "05-Batna", "06-Béjaïa", "07-Biskra", "08-Béchar", "09-Blida", "10-Bouira", "11-Tamanrasset", "12-Tébessa", "13-Tlemcen", "14-Tiaret", "15-Tizi Ouzou", "16-Alger", "17-Djelfa", "18-Jijel", "19-Sétif", "20-Saïda", "21-Skikda", "22-Sidi Bel Abbès", "23-Annaba", "24-Guelma", "25-Constantine", "26-Médéa", "27-Mostaganem", "28-M'Sila", "29-Mascara", "30-Ouargla", "31-Oran", "32-El Bayadh", "33-Illizi", "34-Bordj Bou Arreridj", "35-Boumerdès", "36-El Tarf", "37-Tindouf", "38-Tissemsilt", "39-El Oued", "40-Khenchela", "41-Souk Ahras", "42-Tipaza", "43-Mila", "44-Aïn Defla", "45-Naâma", "46-Aïn Témouchent", "47-Ghardaïa", "48-Relizane", "49-Timimoun", "50-Bordj Badji Mokhtar", "51-Ouled Djellal", "52-Béni Abbès", "53-In Salah", "54-In Guezzam", "55-Touggourt", "56-Djanet", "57-El M'Ghair", "58-El Meniaa"];
 
-    // ملء قائمة الولايات
-    const wSelect = document.getElementById('cust-wilaya');
-    wilayas.forEach(w => wSelect.innerHTML += `<option value="${w}">${w}</option>`);
-
-    // تحميل الإعلانات (Banners)
-    db.ref('banners').on('value', snap => {
-        const slider = document.getElementById('main-slider');
-        slider.innerHTML = '';
-        snap.forEach(c => {
-            slider.innerHTML += `<img src="${c.val().img}">`;
-        });
+    // ملء قوائم الولايات
+    document.querySelectorAll('.wilaya-list').forEach(select => {
+        select.innerHTML = '<option value="">-- اختر ولايتك --</option>';
+        wilayas.forEach(w => select.innerHTML += `<option value="${w}">${w}</option>`);
     });
 
-    // تحريك السلايدر تلقائياً
-    let slideIdx = 0;
-    setInterval(() => {
-        const slides = document.querySelectorAll('.slider img');
-        if(slides.length > 0) {
-            slideIdx = (slideIdx + 1) % slides.length;
-            document.getElementById('main-slider').style.transform = `translateX(${slideIdx * 100}%)`;
-        }
-    }, 4000);
+    function showTab(type, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('buyer-form').classList.toggle('hidden', type === 'vendor');
+        document.getElementById('vendor-form').classList.toggle('hidden', type === 'buyer');
+    }
 
-    // تحميل المنتجات
-    function loadProducts(filter = 'all') {
+    async function register(role) {
+        const email = document.getElementById(role === 'buyer' ? 'b-email' : 'v-email').value;
+        const pass = document.getElementById(role === 'buyer' ? 'b-pass' : 'v-pass').value;
+        const name = document.getElementById(role === 'buyer' ? 'b-name' : 'v-name').value;
+        const wilaya = document.getElementById(role === 'buyer' ? 'b-wilaya' : 'v-wilaya').value;
+        const shop = role === 'vendor' ? document.getElementById('v-shop').value : '';
+
+        if(!email || !pass || !wilaya) return alert("يا رسيم، قولهم يعمرو كلش!");
+
+        try {
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.ref('users/' + res.user.uid).set({
+                name,
+                wilaya,
+                role,
+                shopName: shop,
+                status: role === 'vendor' ? 'pending' : 'approved' // البائع يستنى الموافقة
+            });
+            alert("تم التسجيل بنجاح! ✅");
+            checkUserStatus();
+        } catch (e) { alert(e.message); }
+    }
+
+    function checkUserStatus() {
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                db.ref('users/' + user.uid).once('value', snap => {
+                    const u = snap.val();
+                    if(u.role === 'vendor' && u.status === 'pending') {
+                        alert("حسابك قيد المراجعة من طرف الإدارة ⏳");
+                        auth.signOut();
+                        location.reload();
+                    } else {
+                        document.getElementById('auth-screen').style.display = 'none';
+                        document.getElementById('main-content').style.display = 'block';
+                        document.getElementById('welcome-msg').innerText = `مرحباً ${u.name} (متجر: ${u.shopName || 'زبون'})`;
+                        document.getElementById('location-msg').innerText = `📍 ولايتك: ${u.wilaya}`;
+                        loadProducts();
+                    }
+                });
+            }
+        });
+    }
+
+    function loadProducts() {
         db.ref('products').on('value', snap => {
             const grid = document.getElementById('product-grid');
             grid.innerHTML = '';
             snap.forEach(c => {
                 const p = c.val();
-                if(filter !== 'all' && p.cat !== filter) return;
-                
-                const outOfStock = p.qty <= 0;
                 grid.innerHTML += `
                     <div class="card">
                         <img src="${p.img}">
                         <h4>${p.name}</h4>
-                        <div class="stock">${outOfStock ? '<b style="color:red">نفدت</b>' : 'متوفر: '+p.qty}</div>
-                        <div class="price">${p.price} DA</div>
-                        <small>${p.extra || ''}</small>
-                        <button class="btn" style="background:var(--main); color:white; height:40px; font-size:12px;" 
-                            onclick="addToCart('${c.key}', '${p.name}', ${p.price})" ${outOfStock ? 'disabled' : ''}>
-                            ${outOfStock ? 'غير متوفر' : 'أضف للسلة 🛒'}
-                        </button>
+                        <div style="color:var(--main); font-weight:bold;">${p.price} DA</div>
+                        <div class="vendor-tag">📦 متجر: ${p.shopName || 'محل عام'}</div>
+                        <button class="btn-main" style="margin-top:10px;">إضافة للسلة 🛒</button>
                     </div>`;
             });
         });
     }
 
-    function addToCart(id, name, price) {
-        cart.push({id, name, price});
-        updateCartUI();
-    }
-
-    function updateCartUI() {
-        document.getElementById('cart-count').innerText = cart.length;
-        const list = document.getElementById('cart-items');
-        list.innerHTML = '';
-        let total = 0;
-        cart.forEach((item, index) => {
-            total += item.price;
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span>${item.name}</span>
-                <b>${item.price} DA <span onclick="cart.splice(${index},1); updateCartUI()" style="color:red; cursor:pointer;">❌</span></b>
-            </div>`;
-        });
-        document.getElementById('cart-total').innerText = total;
-    }
-
-    function toggleCart() {
-        const s = document.getElementById('cart-sidebar');
-        s.style.display = (s.style.display === 'block') ? 'none' : 'block';
-    }
-
-    function filterCat(cat, btn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        loadProducts(cat);
-    }
-
-    function openCheckout() {
-        if(cart.length === 0) return alert("سلتك فارغة!");
-        document.getElementById('checkout-modal').style.display = 'flex';
-    }
-
-    async function validateOrder() {
-        const confirm = document.getElementById('confirm-text').value;
-        const name = document.getElementById('cust-name').value;
-        const phone = document.getElementById('cust-phone').value;
-        const wilaya = document.getElementById('cust-wilaya').value;
-        const address = document.getElementById('cust-address').value;
-
-        if(confirm.toLowerCase() !== 'confirmer') return alert("اكتب كلمة Confirmer للتأكيد!");
-        if(!name || !phone || !wilaya) return alert("عمر معلوماتك يا رسيم!");
-
-        const orderData = {
-            customer: name,
-            phone: phone,
-            wilaya: wilaya,
-            address: address,
-            items: cart,
-            total: document.getElementById('cart-total').innerText,
-            date: new Date().toLocaleString()
-        };
-
-        await db.ref('orders').push(orderData);
-        
-        // نقص الكمية من الستوك
-        cart.forEach(item => {
-            db.ref('products/' + item.id + '/qty').transaction(q => (q || 0) - 1);
-        });
-
-        alert("تم إرسال طلبيتك بنجاح! شكراً لك ✅");
-        cart = [];
-        updateCartUI();
-        location.reload();
-    }
-
-    loadProducts();
+    checkUserStatus();
 </script>
 </body>
 </html>
-
