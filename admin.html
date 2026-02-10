@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Boss رسيم 😎</title>
+    <title>لوحة تحكم Racim Shop | Boss Mode 😎</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -13,13 +13,16 @@
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); }
         input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
         table { width: 100%; border-collapse: collapse; background: white; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background: #f8fafc; color: var(--dark); }
         .p-img { width: 50px; height: 50px; object-fit: contain; }
         #login-box { max-width: 350px; margin: 100px auto; text-align: center; }
-        .btn-del { background: var(--danger); width: auto; padding: 5px 10px; }
+        .btn-del { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; }
+        .new-order-anim { animation: blink 1s infinite; color: var(--danger); font-weight: bold; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.3;} 100% {opacity: 1;} }
     </style>
 </head>
 <body>
@@ -36,15 +39,15 @@
 
         <div class="card">
             <h2>📦 إضافة منتج جديد</h2>
-            <input type="text" id="p-name" placeholder="اسم المنتج (مثلاً: iPhone 14 Pro)">
+            <input type="text" id="p-name" placeholder="اسم المنتج">
             <input type="number" id="p-price" placeholder="السعر (DA)">
             <input type="file" id="p-file" accept="image/*">
             <button id="upload-btn" onclick="uploadAndAdd()" style="background: var(--success);">نشر المنتج في المتجر 🚀</button>
             <p id="status" style="text-align:center; font-weight:bold;"></p>
         </div>
 
-        <div class="card" style="border: 2px solid var(--primary);">
-            <h2>🛍️ الطلبيات الجديدة (Commandes)</h2>
+        <div class="card" style="border: 3px solid var(--primary);">
+            <h2>🛍️ الطلبيات (Commandes) <span id="new-alert" class="new-order-anim" style="display:none;">- كاين طلبية جديدة! 🔔</span></h2>
             <div style="overflow-x:auto;">
                 <table>
                     <thead>
@@ -56,30 +59,18 @@
         </div>
 
         <div class="card">
-            <h2>🛒 السلعة المعروضة</h2>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr><th>الصورة</th><th>الاسم</th><th>السعر</th><th>التحكم</th></tr>
-                    </thead>
-                    <tbody id="products-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card">
             <h2>👥 قائمة الزبائن</h2>
-            <div style="overflow-x:auto;">
+            <tbody id="users-list">
                 <table>
-                    <thead>
-                        <tr><th>الاسم</th><th>الهاتف</th><th>الإيميل</th></tr>
-                    </thead>
-                    <tbody id="users-list"></tbody>
+                    <thead><tr><th>الاسم</th><th>الهاتف</th><th>الإيميل</th></tr></thead>
+                    <tbody id="users-list-table"></tbody>
                 </table>
-            </div>
+            </tbody>
         </div>
     </div>
 </div>
+
+<audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
 <script>
     const firebaseConfig = {
@@ -89,25 +80,26 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    let isFirstLoad = true;
+
     function checkAdmin() {
         if(document.getElementById('admin-pass').value === "racim123") {
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('admin-content').style.display = 'block';
-            loadAll();
+            loadData();
         } else { alert("كلمة السر غلط يا رسيم!"); }
     }
 
+    // دالة الرفع المسگمة
     async function uploadAndAdd() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
         const file = document.getElementById('p-file').files[0];
         const status = document.getElementById('status');
 
-        if(!name || !price || !file) return alert("عمر كلش!");
+        if(!name || !price || !file) return alert("عمر كلش يا رسيم!");
 
         status.innerText = "جاري الرفع... ⏳";
-        status.style.color = "blue";
-
         const formData = new FormData();
         formData.append("image", file);
 
@@ -116,38 +108,41 @@
                 method: "POST", body: formData
             });
             const data = await res.json();
-            await db.ref('products').push({ name, price, img: data.data.url });
-            alert("تمت إضافة المنتج بنجاح! ✅");
-            location.reload();
-        } catch (e) { 
-            status.innerText = "خطأ في الرفع! ❌";
+            if(data.success) {
+                await db.ref('products').push({ name, price, img: data.data.url });
+                alert("تم بنجاح! ✅");
+                location.reload();
+            } else { throw new Error(); }
+        } catch (e) {
+            status.innerText = "خطأ في الرفع! جرب صورة أصغر ❌";
             status.style.color = "red";
         }
     }
 
-    function loadAll() {
-        // تحميل السلعة
-        db.ref('products').on('value', snap => {
-            const list = document.getElementById('products-list'); list.innerHTML = '';
-            snap.forEach(c => {
-                const p = c.val();
-                list.innerHTML += `<tr><td><img src="${p.img}" class="p-img"></td><td>${p.name}</td><td>${p.price} DA</td><td><button class="btn-del" onclick="delItem('products/${c.key}')">حذف</button></td></tr>`;
-            });
-        });
-
-        // تحميل الطلبيات
+    function loadData() {
+        // الطلبيات + صوت التنبيه 🔔
         db.ref('orders').on('value', snap => {
-            const list = document.getElementById('orders-list'); list.innerHTML = '';
+            const list = document.getElementById('orders-list');
+            list.innerHTML = '';
+            
+            if (snap.exists() && !isFirstLoad) {
+                document.getElementById('order-sound').play();
+                document.getElementById('new-alert').style.display = 'inline';
+                setTimeout(() => { document.getElementById('new-alert').style.display = 'none'; }, 10000);
+            }
+
             snap.forEach(c => {
                 const o = c.val();
                 let items = o.items.map(i => i.name).join(' + ');
                 list.innerHTML += `<tr><td>${o.customer}</td><td>${o.phone}</td><td>${items}</td><td>${o.total} DA</td><td><button onclick="delItem('orders/${c.key}')" style="background:green;color:white;border:none;padding:5px;border-radius:5px;">تم ✅</button></td></tr>`;
             });
+            isFirstLoad = false;
         });
 
-        // تحميل الزبائن
+        // الزبائن
         db.ref('users').on('value', snap => {
-            const list = document.getElementById('users-list'); list.innerHTML = '';
+            const list = document.getElementById('users-list-table');
+            list.innerHTML = '';
             snap.forEach(c => {
                 const u = c.val();
                 list.innerHTML += `<tr><td>${u.name}</td><td>${u.phone}</td><td>${u.email}</td></tr>`;
@@ -155,7 +150,7 @@
         });
     }
 
-    function delItem(path) { if(confirm("هل أنت متأكد؟")) db.ref(path).remove(); }
+    function delItem(path) { if(confirm("حذف؟")) db.ref(path).remove(); }
 </script>
 </body>
 </html>
