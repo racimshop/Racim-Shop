@@ -1,3 +1,9 @@
+أبشر يا رسيم، راني سگمتلك كلش وجمعتلك التعديلات في ملف واحد للـ index (الزبون) وملف واحد للـ admin (الإدارة). درك يولي يخرجلك رقم الهاتف، التسجيل تلقائي، والطلبيات تطلع عندك بكل التفاصيل.
+
+1️⃣ ملف index.html (انسخه كامل وحطه في GitHub)
+هذا الملف فيه خانة رقم الهاتف وسلة المشتريات:
+
+HTML
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -7,7 +13,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <style>
         :root { --dark: #0f172a; --blue: #2563eb; --green: #10b981; --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; padding-bottom: 50px; }
@@ -22,8 +27,6 @@
         .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
         .card { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
         .card img { width: 100%; height: 150px; object-fit: contain; }
-        
-        /* سلة المشتريات */
         #cart-sidebar { position: fixed; left: 0; top: 0; width: 300px; height: 100%; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.2); padding: 20px; z-index: 2000; overflow-y: auto; text-align: right; }
         .cart-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
         .cart-count { background: #ef4444; color: white; padding: 2px 8px; border-radius: 50%; font-size: 12px; }
@@ -44,7 +47,7 @@
     <div id="cart-items-list"></div>
     <hr>
     <h4>المجموع: <span id="cart-total">0</span> DA</h4>
-    <button class="btn btn-green" onclick="sendOrder()">إرسال الطلب للـ Admin ✅</button>
+    <button class="btn btn-green" onclick="sendOrder()">تأكيد الطلب ✅</button>
     <button class="btn" style="background:#64748b; color:white; margin-top:10px;" onclick="toggleCart()">إغلاق</button>
 </div>
 
@@ -60,6 +63,7 @@
     <div id="reg-box" class="container hidden">
         <h2>إنشاء حساب</h2>
         <input type="text" id="r-name" placeholder="الاسم الكامل">
+        <input type="text" id="r-phone" placeholder="رقم الهاتف">
         <input type="email" id="r-email" placeholder="البريد الإلكتروني">
         <input type="password" id="r-pass" placeholder="كلمة السر">
         <button class="btn btn-green" onclick="signUp()">فتح حساب</button>
@@ -82,30 +86,29 @@
         appId: "1:1049057013675:web:b0cf22da97e39e0e4b6cee",
         databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
     let cart = [];
-    let currentUserName = "";
+    let currentUserData = {};
 
     function toggleUI(isReg) {
         document.getElementById('reg-box').classList.toggle('hidden', !isReg);
         document.getElementById('login-box').classList.toggle('hidden', isReg);
     }
 
-    // 1. تسجيل الحساب (Valide تلقائياً)
     function signUp() {
         const email = document.getElementById('r-email').value;
         const pass = document.getElementById('r-pass').value;
         const name = document.getElementById('r-name').value;
-        if(!name || !email || !pass) return alert("عمر كلش يا رسيم!");
+        const phone = document.getElementById('r-phone').value;
+        if(!name || !phone || !email || !pass) return alert("عمر كلش يا رسيم!");
 
         auth.createUserWithEmailAndPassword(email, pass).then(res => {
             db.ref('users/' + res.user.uid).set({
-                uid: res.user.uid, name: name, email: email, status: 'valide', joinDate: new Date().toLocaleDateString()
-            }).then(() => alert("مبروك الحساب واجد!"));
+                uid: res.user.uid, name, phone, email, status: 'valide'
+            }).then(() => alert("تم التسجيل بنجاح!"));
         }).catch(err => alert(err.message));
     }
 
@@ -120,70 +123,46 @@
     auth.onAuthStateChanged(user => {
         if(user) {
             db.ref('users/' + user.uid).once('value').then(snap => {
-                const userData = snap.val();
-                currentUserName = userData.name;
+                currentUserData = snap.val();
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('shop-section').classList.remove('hidden');
                 document.getElementById('nav-info').classList.remove('hidden');
-                document.getElementById('user-display').innerText = userData.name;
+                document.getElementById('user-display').innerText = currentUserData.name;
                 loadProducts();
             });
         }
     });
 
-    // 2. سلة المشتريات
     function loadProducts() {
-        db.ref('products').on('value', (snapshot) => {
+        db.ref('products').on('value', snap => {
             const grid = document.getElementById('p-grid');
             grid.innerHTML = '';
-            snapshot.forEach((child) => {
+            snap.forEach(child => {
                 const p = child.val();
-                grid.innerHTML += `
-                    <div class="card">
-                        <img src="${p.img}">
-                        <h3>${p.name}</h3>
-                        <p class="price">${p.price} DA</p>
-                        <button class="btn btn-blue" onclick="addToCart('${p.name}', ${p.price})">إضافة للسلة 🛒</button>
-                    </div>`;
+                grid.innerHTML += `<div class="card"><img src="${p.img}"><h3>${p.name}</h3><p>${p.price} DA</p><button class="btn btn-blue" onclick="addToCart('${p.name}', ${p.price})">إضافة للسلة 🛒</button></div>`;
             });
         });
     }
 
-    function addToCart(name, price) {
-        cart.push({ name, price });
-        updateCartUI();
-    }
-
+    function addToCart(name, price) { cart.push({name, price}); updateCartUI(); }
     function updateCartUI() {
         document.getElementById('cart-num').innerText = cart.length;
         const list = document.getElementById('cart-items-list');
-        const totalDisp = document.getElementById('cart-total');
-        list.innerHTML = '';
-        let total = 0;
-        cart.forEach((item, index) => {
-            total += parseInt(item.price);
-            list.innerHTML += `<div class="cart-item"><span>${item.name}</span> <b>${item.price} DA</b></div>`;
-        });
-        totalDisp.innerText = total;
+        let total = 0; list.innerHTML = '';
+        cart.forEach(i => { total += parseInt(i.price); list.innerHTML += `<div class="cart-item">${i.name} - ${i.price} DA</div>`; });
+        document.getElementById('cart-total').innerText = total;
     }
-
     function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('hidden'); }
 
-    // 3. إرسال الطلبية للـ Admin
     function sendOrder() {
         if(cart.length === 0) return alert("السلة فارغة!");
-        const orderData = {
-            customer: currentUserName,
+        db.ref('orders').push({
+            customer: currentUserData.name,
+            phone: currentUserData.phone,
             items: cart,
             total: document.getElementById('cart-total').innerText,
             date: new Date().toLocaleString()
-        };
-        db.ref('orders').push(orderData).then(() => {
-            alert("تم إرسال طلبيتك لرسيم بنجاح! ✅");
-            cart = [];
-            updateCartUI();
-            toggleCart();
-        });
+        }).then(() => { alert("تم إرسال الطلبية! ✅"); cart = []; updateCartUI(); toggleCart(); });
     }
 </script>
 </body>
