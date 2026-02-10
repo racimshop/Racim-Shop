@@ -8,15 +8,17 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h2 { color: #1e293b; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { color: #1e293b; border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-top: 30px; }
         input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; }
-        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { background: #1d4ed8; }
+        .btn-delete { background: #ef4444; margin-right: 5px; }
+        .btn-edit { background: #f59e0b; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
         th { background: #f8fafc; color: #64748b; }
-        .user-row:hover { background: #f1f5f9; }
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
         .badge { background: #10b981; color: white; padding: 4px 8px; border-radius: 5px; font-size: 12px; }
     </style>
 </head>
@@ -29,7 +31,23 @@
     <input type="text" id="p-img" placeholder="رابط صورة المنتج">
     <button onclick="addProduct()">إضافة للمتجر</button>
 
-    <hr style="margin: 40px 0;">
+    <hr>
+
+    <h2>🛒 إدارة المنتجات (تعديل/حذف)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>الصورة</th>
+                <th>الاسم</th>
+                <th>السعر</th>
+                <th>التحكم</th>
+            </tr>
+        </thead>
+        <tbody id="products-table">
+            </tbody>
+    </table>
+
+    <hr>
 
     <h2>👥 قائمة المستخدمين (الزبائن)</h2>
     <table>
@@ -47,7 +65,6 @@
 </div>
 
 <script>
-    // Config تاعك يا رسيم (تأكد أنها نفس اللي في index.html)
     const firebaseConfig = {
         apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
         authDomain: "racimshop-60fb0.firebaseapp.com",
@@ -61,7 +78,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // دالة إضافة المنتج
+    // 1. إضافة منتج
     function addProduct() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
@@ -69,22 +86,58 @@
 
         if(!name || !price || !img) return alert("عمر قاع الخانات يا رسيم!");
 
-        db.ref('products').push({
-            name: name,
-            price: price,
-            img: img
-        }).then(() => {
-            alert("تمت إضافة السلعة بنجاح!");
-            location.reload();
+        db.ref('products').push({ name, price, img })
+        .then(() => {
+            alert("تمت إضافة السلعة!");
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-price').value = '';
+            document.getElementById('p-img').value = '';
         });
     }
 
-    // دالة جلب المستخدمين من Firebase
+    // 2. عرض وإدارة المنتجات
+    function loadAdminProducts() {
+        db.ref('products').on('value', (snap) => {
+            const table = document.getElementById('products-table');
+            table.innerHTML = '';
+            snap.forEach((child) => {
+                const p = child.val();
+                const key = child.key;
+                table.innerHTML += `
+                    <tr>
+                        <td><img src="${p.img}" class="product-img"></td>
+                        <td>${p.name}</td>
+                        <td>${p.price} DA</td>
+                        <td>
+                            <button class="btn-edit" onclick="editProduct('${key}', '${p.name}', '${p.price}')">تعديل</button>
+                            <button class="btn-delete" onclick="deleteProduct('${key}')">حذف</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    // 3. حذف منتج
+    function deleteProduct(key) {
+        if(confirm("هل أنت متأكد من حذف هذه السلعة؟")) {
+            db.ref('products/' + key).remove();
+        }
+    }
+
+    // 4. تعديل منتج
+    function editProduct(key, oldName, oldPrice) {
+        const newName = prompt("الاسم الجديد:", oldName);
+        const newPrice = prompt("السعر الجديد:", oldPrice);
+        if(newName && newPrice) {
+            db.ref('products/' + key).update({ name: newName, price: newPrice });
+        }
+    }
+
+    // 5. عرض المستخدمين
     function loadUsers() {
         db.ref('users').on('value', (snap) => {
             const tableBody = document.getElementById('users-table');
-            tableBody.innerHTML = ''; // نفرغ الجدول قبل التحديث
-            
+            tableBody.innerHTML = '';
             snap.forEach((child) => {
                 const user = child.val();
                 tableBody.innerHTML += `
@@ -93,13 +146,12 @@
                         <td>${user.email}</td>
                         <td>${user.phone || 'غير مسجل'}</td>
                         <td><span class="badge">نشط</span></td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         });
     }
 
-    // تشغيل جلب المستخدمين عند فتح الصفحة
+    loadAdminProducts();
     loadUsers();
 </script>
 
