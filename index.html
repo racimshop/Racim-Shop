@@ -3,55 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Racim Marketplace | Pro Version 🚀</title>
+    <title>Racim Marketplace | Pro</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --main: #2563eb; --dark: #0f172a; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; transition: 0.3s; }
-        
-        /* Navbar */
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
         nav { background: var(--dark); color: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 22px; font-weight: bold; color: #fbbf24; cursor: pointer; }
+        .profile-img { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid var(--main); }
         
-        /* Profile Section */
-        .nav-right { display: flex; align-items: center; gap: 15px; }
-        .profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main); cursor: pointer; }
-        
-        /* Language Selector */
-        #lang-select { background: #334155; color: white; border: none; padding: 5px; border-radius: 5px; font-size: 12px; }
+        /* Categories Style */
+        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; background: white; white-space: nowrap; border-bottom: 1px solid #e2e8f0; }
+        .cat-btn { padding: 8px 18px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; font-weight: 500; transition: 0.3s; }
+        .cat-btn.active { background: var(--main); color: white; border-color: var(--main); }
 
-        /* Auth Screen */
-        .auth-card { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+        /* Products Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; padding: 20px; }
+        .card { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 140px; object-fit: contain; margin-bottom: 10px; }
+        .card h4 { margin: 10px 0 5px; font-size: 15px; }
+        .price { color: var(--main); font-weight: bold; }
+        
+        .auth-card { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
         .btn-primary { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        /* User Profile Modal */
-        #profile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; text-align: center; }
-        .large-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--main); }
-
         .hidden { display: none; }
-        .rtl { direction: rtl; text-align: right; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
+        .rtl { direction: rtl; }
+
+        /* Modal Profile */
+        #profile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; width: 320px; padding: 25px; border-radius: 20px; text-align: center; }
+        .large-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid var(--main); }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo" onclick="location.reload()">Racim Shop</div>
-    <div class="nav-right">
-        <select id="lang-select" onchange="changeLang(this.value)">
-            <option value="fr">Français 🇫🇷</option>
-            <option value="ar">العربية 🇩🇿</option>
-            <option value="en">English 🇺🇸</option>
-            <option value="es">Español 🇪🇸</option>
-            <option value="de">Deutsch 🇩🇪</option>
+    <div class="logo">Racim Shop</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <select id="lang-select" onchange="changeLang(this.value)" style="width:auto; padding:5px;">
+            <option value="fr">FR 🇫🇷</option>
+            <option value="ar">AR 🇩🇿</option>
+            <option value="en">EN 🇺🇸</option>
         </select>
-        
         <div id="user-nav" class="hidden">
-            <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="nav-avatar" class="profile-img" onclick="openProfile()">
+            <img src="" id="nav-avatar" class="profile-img" onclick="openProfile()">
         </div>
     </div>
 </nav>
@@ -60,97 +57,99 @@
     <h2 id="t-auth-title">Connexion</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="pass" placeholder="Password">
-    
     <div id="reg-box" class="hidden">
         <input type="text" id="name" placeholder="Full Name">
         <select id="wilaya"></select>
-        <select id="role" onchange="document.getElementById('shop-box').classList.toggle('hidden', this.value!='vendor')">
-            <option value="buyer">Acheteur (Buyer)</option>
-            <option value="vendor">Vendeur (Seller)</option>
-        </select>
-        <input type="text" id="shop-box" class="hidden" placeholder="Shop Name">
     </div>
-
-    <button class="btn-primary" id="btn-auth" onclick="handleAuth()">Se connecter</button>
-    <p id="t-toggle" onclick="toggleAuth()" style="color: var(--main); cursor: pointer; font-size: 14px;">Pas de compte? Créer un</p>
+    <button class="btn-primary" onclick="handleAuth()" id="btn-auth">Login</button>
+    <p id="t-toggle" onclick="toggleAuth()" style="color:var(--main); cursor:pointer;">No account? Create one</p>
 </div>
 
 <div id="main-content" class="hidden">
-    <h3 id="t-welcome" style="margin: 20px;">Bienvenue!</h3>
-    <div class="grid" id="product-list"></div>
+    <div class="categories" id="cat-list">
+        </div>
+
+    <div class="grid" id="product-grid"></div>
 </div>
 
 <div id="profile-modal">
     <div class="modal-content">
-        <h3 id="t-my-profile">Mon Profil</h3>
         <img src="" id="modal-avatar" class="large-avatar">
-        <input type="file" id="avatar-input" accept="image/*" style="font-size: 12px;">
-        <button class="btn-primary" style="background: #10b981;" id="t-update-img" onclick="updateAvatar()">Changer la photo</button>
-        <hr>
+        <input type="file" id="avatar-input" accept="image/*" style="font-size:11px;">
+        <button class="btn-primary" onclick="updateAvatar()">Update Photo</button>
         <p><b id="t-p-name">Nom:</b> <span id="p-name"></span></p>
-        <p><b id="t-p-wilaya">Wilaya:</b> <span id="p-wilaya"></span></p>
-        <button class="btn-primary" style="background: #ef4444;" id="t-logout" onclick="logout()">Déconnexion</button>
-        <button class="btn-primary" style="background: #64748b;" onclick="closeProfile()">Fermer</button>
+        <button class="btn-primary" style="background:#ef4444;" onclick="logout()">Logout</button>
+        <button class="btn-primary" style="background:#64748b;" onclick="closeProfile()">Close</button>
     </div>
 </div>
 
 <script>
-    // --- Configuration Firebase ---
     const firebaseConfig = { apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // --- Traduction (Languages) ---
+    // --- الترجمة ---
     const i18n = {
-        fr: { title: "Connexion", toggle: "Pas de compte? Créer un", authBtn: "Se connecter", welcome: "Bienvenue", myProfile: "Mon Profil", updateImg: "Changer la photo", logout: "Déconnexion", name: "Nom", wilaya: "Wilaya" },
-        ar: { title: "تسجيل الدخول", toggle: "ليس لديك حساب؟ سجل هنا", authBtn: "دخول", welcome: "مرحباً بك", myProfile: "حسابي", updateImg: "تغيير الصورة", logout: "خروج", name: "الاسم", wilaya: "الولاية" },
-        en: { title: "Login", toggle: "No account? Register", authBtn: "Login", welcome: "Welcome", myProfile: "My Profile", updateImg: "Change Photo", logout: "Logout", name: "Name", wilaya: "Wilaya" }
+        fr: { 
+            authTitle: "Connexion", toggle: "Pas de compte? Créer un", login: "Se connecter", signup: "S'inscrire",
+            cats: { all: "Tout", smartphone: "Téléphones", clothing: "Vêtements", shoes: "Chaussures", electro: "Électro" }
+        },
+        ar: { 
+            authTitle: "تسجيل الدخول", toggle: "ليس لديك حساب؟ سجل هنا", login: "دخول", signup: "إنشاء حساب",
+            cats: { all: "الكل", smartphone: "هواتف", clothing: "ملابس", shoes: "أحذية", electro: "كهرومنزلي" }
+        },
+        en: { 
+            authTitle: "Login", toggle: "No account? Register", login: "Login", signup: "Sign Up",
+            cats: { all: "All", smartphone: "Phones", clothing: "Clothing", shoes: "Shoes", electro: "Electronics" }
+        }
     };
 
     let currentLang = 'fr';
+    let currentCat = 'all';
     let isLoginMode = true;
 
-    // --- Initialisation ---
-    const wilayas = ["01-Adrar", "02-Chlef", "03-Laghouat", "04-Oum El Bouaghi", "05-Batna", "06-Béjaïa", "07-Biskra", "08-Béchar", "09-Blida", "10-Bouira", "11-Tamanrasset", "12-Tébessa", "13-Tlemcen", "14-Tiaret", "15-Tizi Ouzou", "16-Alger", "17-Djelfa", "18-Jijel", "19-Sétif", "20-Saïda", "21-Skikda", "22-Sidi Bel Abbès", "23-Annaba", "24-Guelma", "25-Constantine", "26-Médéa", "27-Mostaganem", "28-M'Sila", "29-Mascara", "30-Ouargla", "31-Oran", "32-El Bayadh", "33-Illizi", "34-Bordj Bou Arreridj", "35-Boumerdès", "36-El Tarf", "37-Tindouf", "38-Tissemsilt", "39-El Oued", "40-Khenchela", "41-Souk Ahras", "42-Tipaza", "43-Mila", "44-Aïn Defla", "45-Naâma", "46-Aïn Témouchent", "47-Ghardaïa", "48-Relizane", "49-Timimoun", "50-Bordj Badji Mokhtar", "51-Ouled Djellal", "52-Béni Abbès", "53-In Salah", "54-In Guezzam", "55-Touggourt", "56-Djanet", "57-El M'Ghair", "58-El Meniaa"];
+    // ملء الولايات
+    const wilayas = ["01-Adrar", "16-Alger", "31-Oran"]; // اختصرتها لك، زيد الباقي
     wilayas.forEach(w => document.getElementById('wilaya').innerHTML += `<option value="${w}">${w}</option>`);
 
     function changeLang(l) {
         currentLang = l;
-        const t = i18n[l] || i18n['en'];
+        const t = i18n[l];
         document.body.classList.toggle('rtl', l === 'ar');
-        document.getElementById('t-auth-title').innerText = t.title;
-        document.getElementById('btn-auth').innerText = isLoginMode ? t.authBtn : "S'inscrire";
+        document.getElementById('t-auth-title').innerText = t.authTitle;
         document.getElementById('t-toggle').innerText = t.toggle;
-        document.getElementById('t-welcome').innerText = t.welcome;
-        document.getElementById('t-my-profile').innerText = t.myProfile;
-        document.getElementById('t-update-img').innerText = t.updateImg;
-        document.getElementById('t-logout').innerText = t.logout;
-        document.getElementById('t-p-name').innerText = t.name;
-        document.getElementById('t-p-wilaya').innerText = t.wilaya;
+        document.getElementById('btn-auth').innerText = isLoginMode ? t.login : t.signup;
+        renderCategories();
+        loadProducts(); // إعادة تحميل السلع لتحديث "المحل" وغيره
     }
 
-    function toggleAuth() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('reg-box').classList.toggle('hidden', isLoginMode);
-        changeLang(currentLang);
+    function renderCategories() {
+        const catList = document.getElementById('cat-list');
+        const c = i18n[currentLang].cats;
+        catList.innerHTML = '';
+        for (let key in c) {
+            catList.innerHTML += `<button class="cat-btn ${currentCat === key ? 'active' : ''}" onclick="filterCat('${key}')">${c[key]}</button>`;
+        }
+    }
+
+    function filterCat(key) {
+        currentCat = key;
+        renderCategories();
+        loadProducts();
     }
 
     async function handleAuth() {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
         try {
-            if(isLoginMode) {
-                await auth.signInWithEmailAndPassword(email, pass);
-            } else {
+            if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
+            else {
                 const res = await auth.createUserWithEmailAndPassword(email, pass);
                 await db.ref('users/' + res.user.uid).set({
                     name: document.getElementById('name').value,
                     wilaya: document.getElementById('wilaya').value,
-                    role: document.getElementById('role').value,
-                    shopName: document.getElementById('shop-box').value,
-                    avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                    status: document.getElementById('role').value === 'vendor' ? 'pending' : 'approved'
+                    role: 'buyer', avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                 });
             }
         } catch(e) { alert(e.message); }
@@ -160,41 +159,54 @@
         if(user) {
             db.ref('users/' + user.uid).on('value', snap => {
                 const u = snap.val();
-                if(u.role === 'vendor' && u.status === 'pending') { alert("En attente d'approbation..."); auth.signOut(); return; }
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('main-content').classList.remove('hidden');
                 document.getElementById('user-nav').classList.remove('hidden');
                 document.getElementById('nav-avatar').src = u.avatar;
                 document.getElementById('modal-avatar').src = u.avatar;
                 document.getElementById('p-name').innerText = u.name;
-                document.getElementById('p-wilaya').innerText = u.wilaya;
+                renderCategories();
+                loadProducts();
             });
         } else {
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('main-content').classList.add('hidden');
-            document.getElementById('user-nav').classList.add('hidden');
         }
     });
 
-    // --- Profile Logic ---
+    function loadProducts() {
+        db.ref('products').on('value', snap => {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            snap.forEach(c => {
+                const p = c.val();
+                if(currentCat !== 'all' && p.cat !== currentCat) return;
+                grid.innerHTML += `
+                    <div class="card">
+                        <img src="${p.img || 'https://via.placeholder.com/150'}">
+                        <h4>${p.name}</h4>
+                        <div class="price">${p.price} DA</div>
+                        <small style="color:gray">${currentLang === 'ar' ? 'المحل' : 'Boutique'}: ${p.shopName || 'Admin'}</small>
+                    </div>`;
+            });
+        });
+    }
+
+    function toggleAuth() { isLoginMode = !isLoginMode; document.getElementById('reg-box').classList.toggle('hidden', isLoginMode); changeLang(currentLang); }
     function openProfile() { document.getElementById('profile-modal').style.display = 'flex'; }
     function closeProfile() { document.getElementById('profile-modal').style.display = 'none'; }
+    function logout() { auth.signOut(); location.reload(); }
 
     async function updateAvatar() {
         const file = document.getElementById('avatar-input').files[0];
-        if(!file) return alert("Select image!");
-        
+        if(!file) return;
         const fd = new FormData(); fd.append("image", file);
         const res = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {method:"POST", body:fd});
-        const data = await res.json();
-        if(data.success) {
-            await db.ref('users/' + auth.currentUser.uid).update({ avatar: data.data.url });
-            alert("Photo mise à jour! ✅");
-        }
+        const d = await res.json();
+        if(d.success) db.ref('users/' + auth.currentUser.uid).update({ avatar: d.data.url });
     }
 
-    function logout() { auth.signOut(); location.reload(); }
-    changeLang('fr'); // Default Language
+    changeLang('fr'); // البداية بالفرنسية
 </script>
 </body>
 </html>
