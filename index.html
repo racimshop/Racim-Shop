@@ -3,85 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Racim Marketplace | Pro 🛒</title>
+    <title>Racim Marketplace | Full Version</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --main: #2563eb; --dark: #0f172a; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; transition: 0.3s; }
-        
-        /* Navbar */
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
         nav { background: var(--dark); color: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .logo { font-size: 22px; font-weight: bold; color: #fbbf24; cursor: pointer; }
-        .profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--main); cursor: pointer; }
-
-        /* Categories Bar */
-        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; background: white; border-bottom: 1px solid #e2e8f0; scrollbar-width: none; }
-        .cat-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 25px; border: 1px solid #ddd; background: white; cursor: pointer; font-weight: 600; white-space: nowrap; transition: 0.3s; }
-        .cat-btn.active { background: var(--main); color: white; border-color: var(--main); }
-
-        /* Sub-Categories (Smartphones) */
-        .sub-cats { display: flex; justify-content: center; gap: 10px; padding: 10px; background: #f1f5f9; }
-        .sub-btn { padding: 5px 15px; border-radius: 15px; border: 1px solid #cbd5e1; background: white; cursor: pointer; font-size: 13px; }
-        .sub-btn.active { background: var(--dark); color: white; }
-
-        /* Grid & Cards */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 15px; padding: 20px; }
-        .card { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 140px; object-fit: contain; }
-        .price { color: var(--main); font-weight: bold; margin: 10px 0; }
-
+        .profile-img { width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--main); cursor: pointer; }
+        
+        /* Auth Card */
+        .auth-card { max-width: 420px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
+        .btn-primary { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { opacity: 0.9; }
+        
+        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; background: white; border-bottom: 1px solid #eee; }
+        .cat-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; background: white; cursor: pointer; white-space: nowrap; }
+        .cat-btn.active { background: var(--main); color: white; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
+        .card { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 130px; object-fit: contain; }
+        
         .hidden { display: none; }
         .rtl { direction: rtl; text-align: right; }
-        .auth-card { max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-primary { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
+        hr { margin: 15px 0; border: 0; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="logo">Racim Shop</div>
-    <div style="display:flex; gap:10px;">
-        <select id="lang-select" onchange="changeLang(this.value)" style="width:auto;">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <select id="lang-select" onchange="changeLang(this.value)" style="width:auto; padding:5px;">
             <option value="fr">FR 🇫🇷</option>
             <option value="ar">AR 🇩🇿</option>
             <option value="en">EN 🇺🇸</option>
         </select>
         <div id="user-nav" class="hidden">
-            <img src="" id="nav-avatar" class="profile-img" onclick="document.getElementById('profile-modal').style.display='flex'">
+            <img src="" id="nav-avatar" class="profile-img" onclick="openProfile()">
         </div>
     </div>
 </nav>
 
 <div id="auth-screen" class="auth-card">
     <h2 id="t-auth-title">Connexion</h2>
+    
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="pass" placeholder="Password">
-    <div id="reg-box" class="hidden"><input type="text" id="name" placeholder="Name"></div>
+    
+    <div id="register-only" class="hidden">
+        <input type="text" id="name" placeholder="Nom Complet / Full Name">
+        
+        <select id="user-role" onchange="checkRole()">
+            <option value="buyer">Acheteur (Buyer)</option>
+            <option value="vendor">Vendeur (Seller)</option>
+        </select>
+        
+        <input type="text" id="shop-name" class="hidden" placeholder="Nom de votre Boutique (Shop Name)">
+        
+        <select id="wilaya-list">
+            <option value="">Sélectionner Wilaya</option>
+        </select>
+    </div>
+
     <button class="btn-primary" onclick="handleAuth()" id="btn-auth">Login</button>
-    <p onclick="toggleAuth()" style="color:var(--main); cursor:pointer;">No account? Register</p>
+    <p id="t-toggle" onclick="toggleAuthMode()" style="color:var(--main); cursor:pointer; font-size: 13px;">Pas de compte? Créer un</p>
 </div>
 
 <div id="main-content" class="hidden">
     <div class="categories" id="cat-list"></div>
-
-    <div id="sub-cat-container" class="sub-cats hidden">
-        <button class="sub-btn active" id="sub-all" onclick="filterSub('all')">Tout</button>
-        <button class="sub-btn" id="sub-phone" onclick="filterSub('phone')">Téléphones</button>
-        <button class="sub-btn" id="sub-parts" onclick="filterSub('parts')">Pièces</button>
+    <div id="sub-cat-box" class="hidden" style="display:flex; justify-content:center; gap:10px; padding:10px; background:#f1f5f9;">
+        <button class="cat-btn active" onclick="filterSub('all')">Tout</button>
+        <button class="cat-btn" onclick="filterSub('phone')">Téléphones</button>
+        <button class="cat-btn" onclick="filterSub('parts')">Pièces</button>
     </div>
-
     <div class="grid" id="product-grid"></div>
 </div>
 
 <div id="profile-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:2000;">
     <div style="background:white; padding:25px; border-radius:20px; text-align:center; width:300px;">
-        <img src="" id="modal-avatar" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--main);">
-        <p id="p-name" style="font-weight:bold;"></p>
-        <button class="btn-primary" style="background:#ef4444;" onclick="auth.signOut(); location.reload();">Logout</button>
-        <button class="btn-primary" style="background:#64748b; margin-top:5px;" onclick="document.getElementById('profile-modal').style.display='none'">Close</button>
+        <img src="" id="modal-avatar" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--main); object-fit:cover;">
+        <h3 id="p-display-name"></h3>
+        <p id="p-display-wilaya" style="color:gray;"></p>
+        <hr>
+        <button class="btn-primary" style="background:#ef4444;" onclick="logout()">Logout</button>
+        <button class="btn-primary" style="background:#64748b; margin-top:5px;" onclick="closeProfile()">Close</button>
     </div>
 </div>
 
@@ -92,40 +101,90 @@
     const db = firebase.database();
 
     const i18n = {
-        fr: { 
-            authTitle: "Connexion", login: "Se connecter", signup: "S'inscrire",
-            subAll: "Tout", subPhone: "Téléphones", subParts: "Pièces",
-            cats: { all: "🏠 Tout", smartphone: "📱 Smartphones", clothing: "👕 Vêtements", shoes: "👟 Chaussures", electro: "⚡ Électro" }
-        },
-        ar: { 
-            authTitle: "تسجيل الدخول", login: "دخول", signup: "إنشاء حساب",
-            subAll: "الكل", subPhone: "هواتف", subParts: "قطع غيار",
-            cats: { all: "🏠 الكل", smartphone: "📱 هواتف ذكية", clothing: "👕 ملابس", shoes: "👟 أحذية", electro: "⚡ كهرومنزلي" }
-        },
-        en: { 
-            authTitle: "Login", login: "Login", signup: "Sign Up",
-            subAll: "All", subPhone: "Phones", subParts: "Spare Parts",
-            cats: { all: "🏠 All", smartphone: "📱 Smartphones", clothing: "👕 Clothing", shoes: "👟 Shoes", electro: "⚡ Electronics" }
-        }
+        fr: { title: "Connexion", toggle: "Pas de compte? Créer un", login: "Se connecter", signup: "S'inscrire", cats: {all:"🏠 Tout", smartphone:"📱 Smartphones", clothing:"👕 Vêtements", shoes:"👟 Chaussures", electro:"⚡ Électro"} },
+        ar: { title: "تسجيل الدخول", toggle: "ليس لديك حساب؟ سجل هنا", login: "دخول", signup: "إنشاء حساب", cats: {all:"🏠 الكل", smartphone:"📱 هواتف", clothing:"👕 ملابس", shoes:"👟 أحذية", electro:"⚡ كهرومنزلي"} },
+        en: { title: "Login", toggle: "No account? Register", login: "Login", signup: "Sign Up", cats: {all:"🏠 All", smartphone:"📱 Phones", clothing:"👕 Clothing", shoes:"👟 Shoes", electro:"⚡ Electronics"} }
     };
 
     let currentLang = 'fr';
+    let isLoginMode = true;
     let currentCat = 'all';
     let currentSub = 'all';
-    let isLoginMode = true;
+
+    // ملء الولايات
+    const wilayas = ["01-Adrar", "02-Chlef", "03-Laghouat", "04-Oum El Bouaghi", "05-Batna", "06-Béjaïa", "07-Biskra", "08-Béchar", "09-Blida", "10-Bouira", "11-Tamanrasset", "12-Tébessa", "13-Tlemcen", "14-Tiaret", "15-Tizi Ouzou", "16-Alger", "17-Djelfa", "18-Jijel", "19-Sétif", "20-Saïda", "21-Skikda", "22-Sidi Bel Abbès", "23-Annaba", "24-Guelma", "25-Constantine", "26-Médéa", "27-Mostaganem", "28-M'Sila", "29-Mascara", "30-Ouargla", "31-Oran", "32-El Bayadh", "33-Illizi", "34-Bordj Bou Arreridj", "35-Boumerdès", "36-El Tarf", "37-Tindouf", "38-Tissemsilt", "39-El Oued", "40-Khenchela", "41-Souk Ahras", "42-Tipaza", "43-Mila", "44-Aïn Defla", "45-Naâma", "46-Aïn Témouchent", "47-Ghardaïa", "48-Relizane", "49-Timimoun", "50-Bordj Badji Mokhtar", "51-Ouled Djellal", "52-Béni Abbès", "53-In Salah", "54-In Guezzam", "55-Touggourt", "56-Djanet", "57-El M'Ghair", "58-El Meniaa"];
+    wilayas.forEach(w => document.getElementById('wilaya-list').innerHTML += `<option value="${w}">${w}</option>`);
 
     function changeLang(l) {
         currentLang = l;
         const t = i18n[l];
         document.body.classList.toggle('rtl', l === 'ar');
-        document.getElementById('t-auth-title').innerText = t.authTitle;
+        document.getElementById('t-auth-title').innerText = t.title;
+        document.getElementById('t-toggle').innerText = t.toggle;
         document.getElementById('btn-auth').innerText = isLoginMode ? t.login : t.signup;
-        document.getElementById('sub-all').innerText = t.subAll;
-        document.getElementById('sub-phone').innerText = t.subPhone;
-        document.getElementById('sub-parts').innerText = t.subParts;
         renderCategories();
         loadProducts();
     }
+
+    function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById('register-only').classList.toggle('hidden', isLoginMode);
+        changeLang(currentLang);
+    }
+
+    function checkRole() {
+        const role = document.getElementById('user-role').value;
+        document.getElementById('shop-name').classList.toggle('hidden', role !== 'vendor');
+    }
+
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        
+        try {
+            if(isLoginMode) {
+                await auth.signInWithEmailAndPassword(email, pass);
+            } else {
+                const name = document.getElementById('name').value;
+                const role = document.getElementById('user-role').value;
+                const wilaya = document.getElementById('wilaya-list').value;
+                const shop = document.getElementById('shop-name').value;
+
+                if(!name || !wilaya) return alert("Remplissez tout!");
+
+                const res = await auth.createUserWithEmailAndPassword(email, pass);
+                await db.ref('users/' + res.user.uid).set({
+                    name, role, wilaya, shopName: shop || '',
+                    avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                    status: role === 'vendor' ? 'pending' : 'approved'
+                });
+            }
+        } catch(e) { alert(e.message); }
+    }
+
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            db.ref('users/' + user.uid).on('value', snap => {
+                const u = snap.val();
+                if(u.role === 'vendor' && u.status === 'pending') {
+                    alert("Compte en attente d'approbation par Racim ⏳");
+                    auth.signOut(); return;
+                }
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('user-nav').classList.remove('hidden');
+                document.getElementById('nav-avatar').src = u.avatar;
+                document.getElementById('modal-avatar').src = u.avatar;
+                document.getElementById('p-display-name').innerText = u.name;
+                document.getElementById('p-display-wilaya').innerText = u.wilaya;
+                renderCategories(); loadProducts();
+            });
+        } else {
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-content').classList.add('hidden');
+            document.getElementById('user-nav').classList.add('hidden');
+        }
+    });
 
     function renderCategories() {
         const catList = document.getElementById('cat-list');
@@ -137,72 +196,34 @@
     }
 
     function filterCat(key) {
-        currentCat = key;
-        currentSub = 'all'; // Reset sub-filter
-        document.getElementById('sub-cat-container').classList.toggle('hidden', key !== 'smartphone');
-        renderCategories();
-        loadProducts();
+        currentCat = key; currentSub = 'all';
+        document.getElementById('sub-cat-box').classList.toggle('hidden', key !== 'smartphone');
+        renderCategories(); loadProducts();
     }
 
     function filterSub(sub) {
         currentSub = sub;
-        document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#sub-cat-box .cat-btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
         loadProducts();
     }
-
-    async function handleAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
-        try {
-            if(isLoginMode) await auth.signInWithEmailAndPassword(email, pass);
-            else {
-                const res = await auth.createUserWithEmailAndPassword(email, pass);
-                await db.ref('users/' + res.user.uid).set({ name: document.getElementById('name').value, role: 'buyer', avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png" });
-            }
-        } catch(e) { alert(e.message); }
-    }
-
-    auth.onAuthStateChanged(user => {
-        if(user) {
-            db.ref('users/' + user.uid).on('value', snap => {
-                const u = snap.val();
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('user-nav').classList.remove('hidden');
-                document.getElementById('nav-avatar').src = u.avatar;
-                document.getElementById('modal-avatar').src = u.avatar;
-                document.getElementById('p-name').innerText = u.name;
-                renderCategories(); loadProducts();
-            });
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('main-content').classList.add('hidden');
-        }
-    });
 
     function loadProducts() {
         db.ref('products').on('value', snap => {
             const grid = document.getElementById('product-grid'); grid.innerHTML = '';
             snap.forEach(c => {
                 const p = c.val();
-                // فلتر التصنيف الرئيسي
                 if(currentCat !== 'all' && p.cat !== currentCat) return;
-                // فلتر التصنيف الفرعي (للهواتف فقط)
                 if(currentCat === 'smartphone' && currentSub !== 'all' && p.subCat !== currentSub) return;
-
-                grid.innerHTML += `
-                    <div class="card">
-                        <img src="${p.img || 'https://via.placeholder.com/150'}">
-                        <h4>${p.name}</h4>
-                        <div class="price">${p.price} DA</div>
-                        <small style="color:gray">${p.shopName || 'Admin'}</small>
-                    </div>`;
+                grid.innerHTML += `<div class="card"><img src="${p.img}"><h4>${p.name}</h4><div style="color:var(--main); font-weight:bold;">${p.price} DA</div><small>${p.shopName || 'Admin'}</small></div>`;
             });
         });
     }
 
-    function toggleAuth() { isLoginMode = !isLoginMode; document.getElementById('reg-box').classList.toggle('hidden', isLoginMode); changeLang(currentLang); }
+    function openProfile() { document.getElementById('profile-modal').style.display = 'flex'; }
+    function closeProfile() { document.getElementById('profile-modal').style.display = 'none'; }
+    function logout() { auth.signOut(); location.reload(); }
+
     changeLang('fr');
 </script>
 </body>
