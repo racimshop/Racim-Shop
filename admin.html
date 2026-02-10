@@ -10,23 +10,17 @@
         :root { --primary: #2563eb; --danger: #ef4444; --success: #10b981; --dark: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
-        
-        /* Login Box */
         #login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; margin: 100px auto; text-align: center; }
-        
-        /* Admin Panel Items */
         #admin-content { display: none; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--dark); }
-        
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-        
+        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
         th { background: #f8fafc; }
-        
-        .p-img { width: 50px; height: 50px; object-fit: contain; }
+        .p-img { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; }
         .btn-del { background: var(--danger); width: auto; padding: 5px 10px; font-size: 12px; }
         .btn-edit { background: #f59e0b; width: auto; padding: 5px 10px; font-size: 12px; margin-left: 5px; }
         .status-badge { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 10px; font-size: 12px; }
@@ -40,69 +34,77 @@
         <input type="text" id="user-in" placeholder="اسم المستخدم">
         <input type="password" id="pass-in" placeholder="كلمة السر">
         <button onclick="checkAdmin()">دخول</button>
-        <p id="err" style="color:red; display:none;">المعلومات غلط يا رسيم!</p>
+        <p id="err" style="color:red; display:none; margin-top:10px;">المعلومات غلط يا رسيم! ❌</p>
     </div>
 
     <div id="admin-content">
-        <h1 style="text-align:center;">مرحباً يا Boss رسيم! 😎</h1>
+        <h1 style="text-align:center;">لوحة تحكم Boss رسيم 😎</h1>
 
-        <div class="card" style="border: 2px solid var(--success);">
-            <h2>🛍️ طلبيات الزبائن (Commandes)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الزبون</th>
-                        <th>المنتجات</th>
-                        <th>المجموع</th>
-                        <th>التاريخ</th>
-                        <th>التحكم</th>
-                    </tr>
-                </thead>
-                <tbody id="orders-list"></tbody>
-            </table>
+        <div class="card" style="border-right: 5px solid var(--success);">
+            <h2>🛍️ الطلبيات الجديدة (Commandes)</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الزبون</th>
+                            <th>المنتجات</th>
+                            <th>المجموع</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card">
-            <h2>📦 إضافة منتج جديد</h2>
-            <input type="text" id="p-name" placeholder="اسم المنتج">
-            <input type="number" id="p-price" placeholder="السعر (DA)">
+            <h2>📦 إضافة منتج جديد للمتجر</h2>
+            <input type="text" id="p-name" placeholder="اسم المنتج (مثال: iPhone 15 Pro)">
+            <input type="number" id="p-price" placeholder="السعر بالدينار (DA)">
+            <p style="text-align: right; font-size: 12px; color: #666;">اختر صورة المنتج من جهازك:</p>
             <input type="file" id="p-file" accept="image/*">
-            <button onclick="uploadAndAdd()">رفع وإضافة للمتجر 🚀</button>
-            <p id="status" style="color:blue;"></p>
+            <button id="upload-btn" onclick="uploadAndAdd()">رفع ونشر المنتج فوراً 🚀</button>
+            <p id="status-msg" style="font-weight: bold; margin-top: 10px;"></p>
         </div>
 
         <div class="card">
-            <h2>🛒 قائمة السلعة الحالية</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الصورة</th>
-                        <th>الاسم</th>
-                        <th>السعر</th>
-                        <th>التحكم</th>
-                    </tr>
-                </thead>
-                <tbody id="products-list"></tbody>
-            </table>
+            <h2>🛒 السلعة المعروضة في السيت</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الصورة</th>
+                            <th>الاسم</th>
+                            <th>السعر</th>
+                            <th>التحكم</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-list"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card">
-            <h2>👥 الزبائن المسجلين</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>الإيميل</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody id="users-list"></tbody>
-            </table>
+            <h2>👥 قائمة الزبائن المسجلين</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الإيميل</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs",
         databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com"
@@ -110,7 +112,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // معلوماتك يا رسيم
+    // معلومات الدخول
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "racim123";
 
@@ -132,29 +134,55 @@
         loadUsers();
     }
 
-    // رفع وإضافة السلعة
+    // دالة الرفع والنشر المعدلة
     async function uploadAndAdd() {
         const name = document.getElementById('p-name').value;
         const price = document.getElementById('p-price').value;
-        const file = document.getElementById('p-file').files[0];
-        if(!name || !price || !file) return alert("عمر كلش!");
+        const fileInput = document.getElementById('p-file');
+        const msg = document.getElementById('status-msg');
+        const btn = document.getElementById('upload-btn');
 
-        document.getElementById('status').innerText = "جاري الرفع... ⏳";
+        if(!name || !price || !fileInput.files[0]) return alert("يا رسيم، لازم تعمر كلش وتخير تصويرة!");
+
+        msg.innerText = "جاري الرفع... يرجى الانتظار ⏳";
+        msg.style.color = "blue";
+        btn.disabled = true;
+
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("image", fileInput.files[0]);
 
         try {
-            const res = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {
-                method: "POST", body: formData
+            // استخدام Key جديد
+            const response = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {
+                method: "POST",
+                body: formData
             });
-            const data = await res.json();
-            await db.ref('products').push({ name, price, img: data.data.url });
-            alert("تمت الإضافة!");
+
+            if (!response.ok) throw new Error("فشل الرفع لموقع الصور");
+
+            const data = await response.json();
+            const imageUrl = data.data.url;
+
+            // الحفظ في Firebase
+            await db.ref('products').push({
+                name: name,
+                price: price,
+                img: imageUrl
+            });
+
+            msg.innerText = "تم النشر في المتجر بنجاح! ✅";
+            msg.style.color = "green";
+            alert("مبروك! المنتج راهو يبان للزبائن درك.");
             location.reload();
-        } catch (e) { alert("خطأ في الرفع"); }
+
+        } catch (error) {
+            console.error(error);
+            msg.innerText = "خطأ في الرفع! تأكد من الإنترنت أو حجم الصورة ❌";
+            msg.style.color = "red";
+            btn.disabled = false;
+        }
     }
 
-    // جلب السلع
     function loadProducts() {
         db.ref('products').on('value', snap => {
             const list = document.getElementById('products-list');
@@ -174,26 +202,25 @@
         });
     }
 
-    // جلب الطلبيات
     function loadOrders() {
         db.ref('orders').on('value', snap => {
             const list = document.getElementById('orders-list');
             list.innerHTML = '';
+            if(!snap.exists()) { list.innerHTML = "<tr><td colspan='5'>لا توجد طلبات جديدة</td></tr>"; return; }
             snap.forEach(child => {
                 const o = child.val();
-                let items = o.items.map(i => i.name).join(', ');
+                let items = o.items ? o.items.map(i => i.name).join(' + ') : "خطأ في البيانات";
                 list.innerHTML += `<tr>
                     <td><b>${o.customer}</b></td>
                     <td>${items}</td>
-                    <td style="color:green;">${o.total} DA</td>
-                    <td>${o.date}</td>
-                    <td><button class="btn-del" onclick="delOrder('${child.key}')">تم ✅</button></td>
+                    <td style="color:green; font-weight:bold;">${o.total} DA</td>
+                    <td style="font-size:11px;">${o.date}</td>
+                    <td><button class="btn-del" onclick="delOrder('${child.key}')">تم التوصيل ✅</button></td>
                 </tr>`;
             });
         });
     }
 
-    // جلب الزبائن
     function loadUsers() {
         db.ref('users').on('value', snap => {
             const list = document.getElementById('users-list');
@@ -201,21 +228,22 @@
             snap.forEach(child => {
                 const u = child.val();
                 list.innerHTML += `<tr>
-                    <td>${u.name}</td>
+                    <td>${u.name || 'مجهول'}</td>
                     <td>${u.email}</td>
-                    <td><span class="status-badge">Valide</span></td>
+                    <td><span class="status-badge">نشط ✅</span></td>
                 </tr>`;
             });
         });
     }
 
-    function delP(k) { if(confirm("تمسح السلعة؟")) db.ref('products/'+k).remove(); }
-    function delOrder(k) { if(confirm("وصلت الطلبية؟")) db.ref('orders/'+k).remove(); }
+    function delP(k) { if(confirm("هل تريد حذف هذا المنتج نهائياً؟")) db.ref('products/'+k).remove(); }
+    function delOrder(k) { if(confirm("هل اكتملت هذه الطلبية؟ سيتم حذفها من الجدول.")) db.ref('orders/'+k).remove(); }
     function editP(k, n, p) {
-        const nn = prompt("الاسم الجديد:", n);
+        const nn = prompt("الاسم الجديد للمنتج:", n);
         const np = prompt("السعر الجديد:", p);
         if(nn && np) db.ref('products/'+k).update({ name: nn, price: np });
     }
 </script>
+
 </body>
 </html>
