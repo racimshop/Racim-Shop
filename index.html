@@ -3,24 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RACIM SHOP</title>
+    <title>RACIM SHOP | Boutique Officielle</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
     <style>
-        :root { --main: #2563eb; --jumia: #f68b1e; --dark: #1e293b; }
-        body { font-family: sans-serif; background: #f1f5f9; margin: 0; padding-bottom: 70px; }
+        :root { --main: #2563eb; --jumia: #f68b1e; --dark: #1e293b; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; }
         .hidden { display: none !important; }
-        nav { background: var(--dark); color: white; padding: 15px; text-align: center; font-weight: bold; }
-        .card { background: white; margin: 10px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        .btn-main { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-        .p-card { background: white; border-radius: 10px; padding: 10px; text-align: center; border: 1px solid #eee; }
-        .p-card img { width: 100%; height: 100px; object-fit: contain; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; z-index: 1000; }
-        .nav-item { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #64748b; font-size: 12px; }
-        .active { color: var(--main); font-weight: bold; }
+        nav { background: var(--dark); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 20px; position: sticky; top: 0; z-index: 100; }
+        
+        /* Auth Styles */
+        .card { background: white; margin: 15px; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
+        .btn-main { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { background: #1d4ed8; }
+        
+        /* Products Grid */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+        .p-card { background: white; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #eee; transition: 0.3s; }
+        .p-card img { width: 100%; height: 130px; object-fit: contain; border-radius: 8px; }
+        .p-card h4 { margin: 10px 0 5px; font-size: 14px; color: #334155; height: 40px; overflow: hidden; }
+        .p-price { color: var(--jumia); font-weight: bold; font-size: 16px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; z-index: 1000; height: 60px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #64748b; font-size: 11px; }
+        .nav-item.active { color: var(--main); font-weight: bold; }
+        .nav-item i { font-size: 20px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -31,61 +43,99 @@
     <h2 id="auth-title" style="text-align:center;">Connexion</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="pass" placeholder="Mot de passe">
+    
     <div id="register-fields" class="hidden">
         <input type="text" id="reg-name" placeholder="Nom Complet">
         <input type="text" id="reg-user" placeholder="Username (@unique)">
-        <select id="reg-wilaya"></select>
+        <select id="reg-wilaya">
+            <option value="">Sélectionnez votre Wilaya</option>
+        </select>
     </div>
+    
     <button class="btn-main" onclick="handleAuth()">Continuer</button>
-    <p onclick="toggleAuth()" style="text-align:center; color:var(--main); cursor:pointer;">Créer un compte</p>
+    <p id="toggle-text" onclick="toggleAuth()" style="text-align:center; color:var(--main); cursor:pointer; font-size:14px; margin-top:15px;">
+        Pas de compte ? Créer un compte
+    </p>
 </div>
 
 <div id="app-content" class="hidden">
     <div id="tab-home" class="page">
-        <div style="background:var(--jumia); color:white; padding:15px; margin:10px; border-radius:10px; text-align:center; font-weight:bold;">🔥 BIENVENUE CHEZ RACIM 🔥</div>
+        <div style="background: linear-gradient(90deg, #f68b1e, #ffaa00); color:white; padding:15px; margin:10px; border-radius:12px; text-align:center;">
+            <b>🚚 Livraison 58 Wilayas</b><br><small>Meilleur prix garanti</small>
+        </div>
         <div class="product-grid" id="product-list"></div>
     </div>
+
     <div id="tab-profile" class="page hidden">
         <div class="card" style="text-align:center;">
-            <h2 id="my-name"></h2>
-            <p id="my-user" style="color:var(--main); font-weight:bold;"></p>
-            <button onclick="auth.signOut()" style="background:#ef4444; color:white; border:none; margin-top:10px;">Déconnexion</button>
+            <div style="width:80px; height:80px; background:var(--main); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; font-size:30px; font-weight:bold;" id="avatar-letter">R</div>
+            <h2 id="my-name" style="margin:5px 0;"></h2>
+            <p id="my-user" style="color:var(--main); margin:0; font-weight:bold;"></p>
+            <p id="my-email" style="color:#64748b; font-size:13px;"></p>
+            <p id="my-wilaya" style="font-size:14px; margin-top:10px;"></p>
+            <hr style="border:0.5px solid #eee; margin:20px 0;">
+            <button onclick="auth.signOut()" style="background:#fef2f2; color:#ef4444; border:none; padding:10px; font-weight:bold;">Se déconnecter</button>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav hidden" id="nav-bar">
-    <div class="nav-item active" onclick="showTab('home', this)">🛒 Boutique</div>
-    <div class="nav-item" onclick="showTab('profile', this)">👤 Profil</div>
+    <div class="nav-item active" onclick="showTab('home', this)"><span>🛒</span><br>Boutique</div>
+    <div class="nav-item" onclick="showTab('profile', this)"><span>👤</span><br>Profil</div>
 </div>
 
 <script>
+    // 1. CONFIGURATION
     const firebaseConfig = { apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
+    (function(){ emailjs.init("YOUR_PUBLIC_KEY"); })(); // <-- دير الـ Public Key تاعك هنا
+
     let isLogin = true;
-    const wilayas = ["01-Adrar", "16-Alger", "22-Sidi Bel Abbès", "31-Oran"]; // كملهم لـ 58
+    const wilayas = ["01-Adrar", "02-Chlef", "16-Alger", "22-Sidi Bel Abbès", "31-Oran", "42-Tipaza"]; // كملهم لـ 58
     wilayas.forEach(w => document.getElementById('reg-wilaya').innerHTML += `<option value="${w}">${w}</option>`);
 
+    // 2. AUTHENTICATION LOGIC
     function toggleAuth() {
         isLogin = !isLogin;
         document.getElementById('register-fields').classList.toggle('hidden', isLogin);
         document.getElementById('auth-title').innerText = isLogin ? "Connexion" : "Inscription";
+        document.getElementById('toggle-text').innerText = isLogin ? "Pas de compte ? Créer un compte" : "Déjà inscrit ? Se connecter";
     }
 
     async function handleAuth() {
         const email = document.getElementById('email').value, pass = document.getElementById('pass').value;
+        if(!email || !pass) return alert("Veuillez remplir les champs.");
+
         if(isLogin) {
-            auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+            auth.signInWithEmailAndPassword(email, pass).catch(e => alert("Erreur: " + e.message));
         } else {
             const user = document.getElementById('reg-user').value.trim();
             const name = document.getElementById('reg-name').value;
-            if(!user || !name) return alert("Remplissez tout !");
+            if(!user || !name) return alert("Complétez les infos.");
+            
+            // تحقق من Username
             const snap = await db.ref('users').orderByChild('username').equalTo(user).once('value');
             if(snap.exists()) return alert("Username déjà pris !");
-            const res = await auth.createUserWithEmailAndPassword(email, pass);
-            await db.ref('users/' + res.user.uid).set({ name, username: user.startsWith('@') ? user : '@'+user, wilaya: document.getElementById('reg-wilaya').value });
+
+            // إرسال كود التأكيد (Verification)
+            const vCode = Math.floor(100000 + Math.random() * 900000);
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_VERIFY_TEMPLATE", { to_email: email, v_code: vCode })
+            .then(() => {
+                const check = prompt("Un code de vérification a été envoyé à " + email);
+                if(check == vCode) {
+                    auth.createUserWithEmailAndPassword(email, pass).then(res => {
+                        db.ref('users/' + res.user.uid).set({
+                            name: name,
+                            username: user.startsWith('@') ? user : '@' + user,
+                            email: email,
+                            wilaya: document.getElementById('reg-wilaya').value,
+                            dateJoined: new Date().toLocaleDateString()
+                        });
+                    });
+                } else { alert("Code incorrect !"); }
+            });
         }
     }
 
@@ -93,19 +143,21 @@
         if(user) {
             db.ref('users/' + user.uid).on('value', snap => {
                 const u = snap.val();
-                if(!u) { // إذا الآدمين مسح الداتا، نرجعوه للتسجيل
+                if(!u) { // إذا الآدمين دار Reset
                     document.getElementById('auth-section').classList.remove('hidden');
-                    document.getElementById('register-fields').classList.remove('hidden');
                     document.getElementById('app-content').classList.add('hidden');
                     document.getElementById('nav-bar').classList.add('hidden');
-                    isLogin = false; document.getElementById('auth-title').innerText = "Compléter Profil";
-                    return;
+                    isLogin = false; toggleAuth(); return;
                 }
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
                 document.getElementById('nav-bar').classList.remove('hidden');
+                
                 document.getElementById('my-name').innerText = u.name;
                 document.getElementById('my-user').innerText = u.username;
+                document.getElementById('my-email').innerText = u.email;
+                document.getElementById('my-wilaya').innerText = "📍 " + u.wilaya;
+                document.getElementById('avatar-letter').innerText = u.name.charAt(0).toUpperCase();
                 loadProducts();
             });
         } else {
@@ -115,14 +167,50 @@
         }
     });
 
+    // 3. PRODUCTS & ORDERS
     function loadProducts() {
         db.ref('products').on('value', snap => {
             const list = document.getElementById('product-list'); list.innerHTML = '';
             snap.forEach(c => {
                 const p = c.val();
-                list.innerHTML += `<div class="p-card"><img src="${p.img || p.image || ''}"><h4>${p.name || p.title}</h4><b>${p.price} DA</b></div>`;
+                list.innerHTML += `
+                    <div class="p-card">
+                        <img src="${p.img || p.image || ''}">
+                        <h4>${p.name || p.title}</h4>
+                        <div class="p-price">${p.price} DA</div>
+                        <button class="btn-main" style="padding:8px; font-size:12px;" onclick="placeOrder('${c.key}', '${p.name||p.title}', '${p.price}')">Acheter</button>
+                    </div>`;
             });
         });
+    }
+
+    function placeOrder(id, name, price) {
+        const phone = prompt("Votre numéro de téléphone :");
+        const address = prompt("Adresse Domicile Complète :");
+        if(phone && address) {
+            const u = auth.currentUser;
+            db.ref('users/' + u.uid).once('value').then(snap => {
+                const user = snap.val();
+                const orderDate = new Date().toLocaleString();
+                const orderData = { 
+                    productName: name, productPrice: price, 
+                    customerName: user.name, customerPhone: phone, 
+                    address: address, wilaya: user.wilaya, 
+                    email: user.email, date: orderDate 
+                };
+                
+                db.ref('orders').push(orderData).then(() => {
+                    emailjs.send("YOUR_SERVICE_ID", "YOUR_ORDER_TEMPLATE", {
+                        to_email: user.email,
+                        customer_name: user.name,
+                        product_name: name,
+                        address: address,
+                        price: price
+                    });
+                    alert("✅ Commande confirmée ! Vérifiez votre email.");
+                });
+            });
+        }
     }
 
     function showTab(tab, el) {
