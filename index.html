@@ -3,113 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RACIM SHOP | Boutique Professional</title>
+    <title>RACIM SHOP | Style Achrilik</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    
     <style>
-        :root { --main: #2563eb; --jumia: #f68b1e; --dark: #1e293b; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; }
+        :root { --primary: #000000; --accent: #2563eb; --gray: #f4f4f4; --text: #1a1a1a; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #ffffff; margin: 0; color: var(--text); padding-bottom: 80px; }
         .hidden { display: none !important; }
+
+        /* Header Style Achrilik */
+        nav { background: #fff; border-bottom: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 22px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
+        .lang-toggle { font-size: 12px; font-weight: bold; border: 1px solid #ddd; padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+
+        /* Categories Scroll */
+        .categories { display: flex; overflow-x: auto; padding: 15px; gap: 10px; scrollbar-width: none; background: #fff; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-item { background: var(--gray); padding: 8px 18px; border-radius: 25px; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .cat-item.active { background: var(--primary); color: #fff; }
+
+        /* Product Grid */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .p-card { background: #fff; border-radius: 0px; text-align: left; transition: 0.3s; }
+        .p-img-box { background: var(--gray); border-radius: 12px; padding: 10px; position: relative; overflow: hidden; }
+        .p-card img { width: 100%; height: 160px; object-fit: contain; }
+        .p-info { padding: 10px 0; }
+        .p-info h4 { margin: 0; font-size: 14px; font-weight: 600; color: #333; height: 38px; overflow: hidden; }
+        .p-price { font-size: 16px; font-weight: 800; color: var(--primary); margin: 5px 0; }
+
+        /* Button style achrilik */
+        .btn-buy { background: var(--primary); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px; }
         
-        /* Header & Lang */
-        nav { background: var(--dark); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .lang-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-
-        /* Categories Bar */
-        .categories { display: flex; overflow-x: auto; padding: 10px; gap: 10px; background: white; white-space: nowrap; border-bottom: 1px solid #eee; }
-        .cat-item { background: #f1f5f9; padding: 8px 15px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
-        .cat-item.active { background: var(--main); color: white; }
-
-        /* Product Card */
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
-        .p-card { background: white; border-radius: 15px; padding: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; position: relative; }
-        .p-card img { width: 100%; height: 120px; object-fit: contain; border-radius: 10px; }
-        .p-card h4 { margin: 10px 0 5px; font-size: 14px; height: 35px; overflow: hidden; color: #334155; }
-        .price-tag { color: var(--jumia); font-weight: bold; font-size: 17px; margin-bottom: 10px; display: block; }
-        
-        /* Buy Button */
-        .btn-buy { background: var(--main); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-buy:hover { background: #1d4ed8; }
-
         /* Bottom Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 65px; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 12px; }
-        .nav-item.active { color: var(--main); font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; display: flex; border-top: 1px solid #eee; height: 65px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; cursor: pointer; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .nav-item span { font-size: 11px; margin-top: 4px; }
 
-        /* Auth Card */
-        .auth-card { background: white; margin: 20px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #e2e8f0; }
+        /* Auth Style */
+        .auth-container { padding: 40px 25px; text-align: center; }
+        .auth-container h2 { font-weight: 900; font-size: 28px; margin-bottom: 30px; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #eee; background: var(--gray); border-radius: 10px; font-size: 14px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <nav>
-    <span id="nav-logo">RACIM SHOP</span>
-    <button class="lang-btn" onclick="toggleLang()">العربية / FR</button>
+    <div class="logo">RACIM<span>.</span></div>
+    <div class="lang-toggle" onclick="toggleLang()">AR / FR</div>
 </nav>
 
-<div id="auth-section" class="auth-card">
-    <h2 id="auth-title" style="text-align:center;">Connexion</h2>
-    <input type="email" id="email" placeholder="Email">
+<div id="auth-section" class="auth-container">
+    <h2 id="auth-title">Welcome</h2>
+    <input type="email" id="email" placeholder="Email address">
     <input type="password" id="pass" placeholder="Password">
     <div id="register-fields" class="hidden">
-        <input type="text" id="reg-name" placeholder="Nom Complet">
-        <input type="text" id="reg-user" placeholder="Username (@)">
-        <select id="reg-wilaya"></select>
+        <input type="text" id="reg-name" placeholder="Full Name">
+        <input type="text" id="reg-user" placeholder="Username">
+        <select id="reg-wilaya" style="width:100%; padding:15px; border-radius:10px; background:var(--gray); border:none; margin-bottom:15px;"></select>
     </div>
-    <button class="btn-buy" onclick="handleAuth()" style="margin-top:10px;" id="auth-btn">Continuer</button>
-    <p onclick="toggleAuth()" id="auth-toggle" style="text-align:center; color:var(--main); cursor:pointer; font-size:14px; margin-top:15px;">Créer un compte</p>
+    <button class="btn-buy" onclick="handleAuth()" id="auth-btn">Continue</button>
+    <p onclick="toggleAuth()" id="auth-toggle" style="font-size:13px; margin-top:20px; color:#666; cursor:pointer;">Create account</p>
 </div>
 
 <div id="app-content" class="hidden">
-    <div class="categories" id="cat-list">
-        <div class="cat-item active" onclick="filterCat('All')">Tout</div>
-        <div class="cat-item" onclick="filterCat('Phones')">Téléphones</div>
-        <div class="cat-item" onclick="filterCat('Clothes')">Vêtements</div>
-        <div class="cat-item" onclick="filterCat('Electronics')">Électronique</div>
+    <div class="categories">
+        <div class="cat-item active" onclick="filterCat('All')">All Products</div>
+        <div class="cat-item" onclick="filterCat('Phones')">Phones</div>
+        <div class="cat-item" onclick="filterCat('Clothes')">Clothing</div>
+        <div class="cat-item" onclick="filterCat('Tech')">Electronics</div>
     </div>
 
     <div id="tab-home" class="page">
         <div class="product-grid" id="product-list"></div>
     </div>
 
-    <div id="tab-profile" class="page hidden">
-        <div class="auth-card" style="text-align:center;">
-            <div style="width:70px; height:70px; background:var(--main); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px; font-size:25px; font-weight:bold;" id="avatar">R</div>
+    <div id="tab-profile" class="page hidden" style="padding:20px;">
+        <div style="background:var(--gray); padding:30px; border-radius:20px; text-align:center;">
             <h2 id="my-name"></h2>
-            <p id="my-user" style="color:var(--main); font-weight:bold;"></p>
-            <p id="my-wilaya" style="color:#64748b;"></p>
-            <button onclick="auth.signOut()" style="background:#fff1f2; color:#e11d48; border:none; padding:10px 20px; border-radius:10px; margin-top:20px; cursor:pointer;">Déconnexion</button>
+            <p id="my-user" style="color:#666;"></p>
+            <button onclick="auth.signOut()" style="background:none; border:1px solid red; color:red; padding:10px 20px; border-radius:10px; margin-top:20px;">Logout</button>
         </div>
     </div>
 </div>
 
 <div class="bottom-nav hidden" id="nav-bar">
-    <div class="nav-item active" onclick="showTab('home', this)"><span style="font-size:20px;">🛒</span><span id="nav-shop">Boutique</span></div>
-    <div class="nav-item" onclick="showTab('profile', this)"><span style="font-size:20px;">👤</span><span id="nav-profile">Profil</span></div>
+    <div class="nav-item active" onclick="showTab('home', this)">📦 <span>Shop</span></div>
+    <div class="nav-item" onclick="showTab('profile', this)">👤 <span>Profile</span></div>
 </div>
 
 <script>
-    // Firebase Config
+    // Firebase Config (نفسها اللي عندك)
     const firebaseConfig = { apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth(), db = firebase.database();
 
-    let isLogin = true, currentLang = 'fr';
-    const translations = {
-        fr: { shop: "Boutique", profile: "Profil", buy: "Acheter 🛒", login: "Connexion", create: "Créer un compte", confirm: "Un code a été envoyé" },
-        ar: { shop: "المتجر", profile: "حسابي", buy: "شراء 🛒", login: "تسجيل الدخول", create: "إنشاء حساب", confirm: "تم إرسال الكود" }
-    };
-
+    // Language & UI Logic
+    let isLogin = true, lang = 'fr';
     function toggleLang() {
-        currentLang = currentLang === 'fr' ? 'ar' : 'fr';
-        document.getElementById('nav-shop').innerText = translations[currentLang].shop;
-        document.getElementById('nav-profile').innerText = translations[currentLang].profile;
-        document.body.style.direction = currentLang === 'ar' ? 'rtl' : 'ltr';
-        loadProducts(); // لتحديث أزرار الشراء
+        lang = lang === 'fr' ? 'ar' : 'fr';
+        document.body.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+        // يمكنك إضافة ترجمات النصوص هنا
     }
 
     // تعبئة الولايات
@@ -119,7 +114,68 @@
     function toggleAuth() {
         isLogin = !isLogin;
         document.getElementById('register-fields').classList.toggle('hidden', isLogin);
-        document.getElementById('auth-title').innerText = isLogin ? translations[currentLang].login : translations[currentLang].create;
+        document.getElementById('auth-title').innerText = isLogin ? "Welcome Back" : "Create Account";
+    }
+
+    function loadProducts(filter = 'All') {
+        db.ref('products').on('value', snap => {
+            const list = document.getElementById('product-list'); list.innerHTML = '';
+            snap.forEach(c => {
+                const p = c.val();
+                if(filter === 'All' || p.category === filter) {
+                    list.innerHTML += `
+                    <div class="p-card">
+                        <div class="p-img-box">
+                            <img src="${p.img || p.image || ''}">
+                        </div>
+                        <div class="p-info">
+                            <h4>${p.name || p.title}</h4>
+                            <div class="p-price">${p.price} DA</div>
+                            <button class="btn-buy" onclick="placeOrder('${c.key}','${p.name||p.title}','${p.price}')">ACHETER</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    }
+
+    // دالة وضع الطلبية (نفس اللي خدمناها)
+    function placeOrder(id, name, price) {
+        const phone = prompt("Phone Number:");
+        if(phone) {
+            db.ref('orders').push({
+                productName: name, productPrice: price, 
+                customerPhone: phone, customerName: document.getElementById('my-name').innerText,
+                date: new Date().toLocaleString()
+            }).then(() => alert("Commande confirmée !"));
+        }
+    }
+
+    // Auth Change State
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            db.ref('users/' + user.uid).on('value', snap => {
+                const u = snap.val();
+                if(!u) return;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                document.getElementById('nav-bar').classList.remove('hidden');
+                document.getElementById('my-name').innerText = u.name;
+                document.getElementById('my-user').innerText = "@" + u.username;
+                loadProducts();
+            });
+        } else {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('nav-bar').classList.add('hidden');
+        }
+    });
+
+    function showTab(tab, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById('tab-'+tab).classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
     }
 
     async function handleAuth() {
@@ -127,16 +183,14 @@
         if(isLogin) {
             auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
         } else {
-            const user = document.getElementById('reg-user').value.trim();
-            const snap = await db.ref('users').orderByChild('username').equalTo(user).once('value');
-            if(snap.exists()) return alert("Username déjà pris");
-            
-            // هنا تزيد كود الـ Email Verification كما في الكود السابق
-            auth.createUserWithEmailAndPassword(email, pass).then(res => {
-                db.ref('users/' + res.user.uid).set({
-                    name: document.getElementById('reg-name').value,
-                    username: user, email: email, wilaya: document.getElementById('reg-wilaya').value
-                });
+            const user = document.getElementById('reg-user').value;
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.ref('users/' + res.user.uid).set({
+                name: document.getElementById('reg-name').value,
+                username: user, email: email, wilaya: document.getElementById('reg-wilaya').value
             });
         }
     }
+</script>
+</body>
+</html>
