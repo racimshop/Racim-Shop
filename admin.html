@@ -2,63 +2,154 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>RACIM ADMIN 🛡️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RACIM SHOP | Admin 🛡️</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f8fafc; padding: 20px; }
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #1e293b; color: white; }
-        .btn-reset { background: #f59e0b; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-reset:hover { background: #d97706; }
+        :root { --dark: #0f172a; --blue: #2563eb; --red: #ef4444; --green: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--dark); color: white; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
+        .main { margin-left: 250px; flex: 1; padding: 30px; }
+        
+        /* Cards */
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+        .stat-card b { font-size: 24px; color: var(--blue); }
+
+        /* Tables */
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 40px; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f8fafc; color: #64748b; font-size: 13px; text-transform: uppercase; }
+        
+        .btn-reset { background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .btn-del { background: var(--red); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .tag-email { background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
 
-    <h1 style="color:#1e293b;">🛡️ Administration RACIM SHOP</h1>
-    
+<div class="sidebar">
+    <h2 style="color: #fbbf24; margin-bottom: 5px;">RACIM SHOP</h2>
+    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 30px;">Dashboard Professional</p>
+    <nav>
+        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; cursor: pointer;">📊 Dashboard</div>
+        <div onclick="window.location.href='index.html'" style="margin-top: 15px; padding: 10px; cursor: pointer; color: #cbd5e1;">🏠 Aller au Site</div>
+    </nav>
+</div>
+
+<div class="main">
+    <h1>Tableau de Bord</h1>
+
+    <div class="stats">
+        <div class="stat-card"><h3>Utilisateurs</h3><b id="count-users">0</b></div>
+        <div class="stat-card"><h3>Commandes</h3><b id="count-orders">0</b></div>
+        <div class="stat-card"><h3>Produits</h3><b id="count-prods">0</b></div>
+    </div>
+
+    <h2 style="color: var(--blue);">📦 Gestion des Commandes</h2>
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>Utilisateur</th>
-                    <th>Username</th>
+                    <th>Client / Phone</th>
+                    <th>Produit</th>
+                    <th>Adresse Domicile</th>
+                    <th>Wilaya</th>
+                    <th>Date / Temps</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody id="admin-table"></tbody>
+            <tbody id="orders-table"></tbody>
         </table>
     </div>
 
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <h2 style="color: var(--dark);">👥 Utilisateurs & Emails</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom & User</th>
+                    <th>Email personnel</th>
+                    <th>Wilaya</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="users-table"></tbody>
+        </table>
+    </div>
+</div>
 
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", 
+        databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadData() {
+        // 1. جلب المستخدمين
         db.ref('users').on('value', snap => {
-            const tbody = document.getElementById('admin-table');
-            tbody.innerHTML = '';
+            const uBody = document.getElementById('users-table');
+            uBody.innerHTML = '';
+            let uCount = 0;
             snap.forEach(child => {
-                const u = child.val();
-                tbody.innerHTML += `
+                const u = child.val(); uCount++;
+                uBody.innerHTML += `
                     <tr>
-                        <td><b>${u.name || 'Nouveau'}</b></td>
-                        <td style="color:blue">${u.username || '@--'}</td>
-                        <td>
-                            <button class="btn-reset" onclick="resetUser('${child.key}')">Forcer Re-Inscription</button>
-                        </td>
-                    </tr>
-                `;
+                        <td><b>${u.name}</b><br><small style="color:var(--blue)">${u.username}</small></td>
+                        <td><span class="tag tag-email">${u.email || 'N/A'}</span></td>
+                        <td>${u.wilaya || '/'}</td>
+                        <td><button class="btn-reset" onclick="resetUser('${child.key}')">Reset</button></td>
+                    </tr>`;
             });
+            document.getElementById('count-users').innerText = uCount;
         });
 
-        function resetUser(id) {
-            if(confirm("إجبار المستخدم على إعادة إدخال معلوماته؟")) {
-                db.ref('users/' + id).remove().then(() => alert("C'est fait !"));
-            }
+        // 2. جلب الطلبيات (فيها Adresse و Temps)
+        db.ref('orders').on('value', snap => {
+            const oBody = document.getElementById('orders-table');
+            oBody.innerHTML = '';
+            let oCount = 0;
+            snap.forEach(child => {
+                const o = child.val(); oCount++;
+                oBody.innerHTML += `
+                    <tr>
+                        <td><b>${o.customerName || o.customer}</b><br><small style="color:green; font-weight:bold;">${o.customerPhone || o.phone}</small></td>
+                        <td><span style="color:var(--blue)">${o.productName || o.product}</span><br>${o.productPrice || o.price} DA</td>
+                        <td style="font-size:13px; max-width:200px;">📍 ${o.address || 'Non spécifiée'}</td>
+                        <td>${o.wilaya || '/'}</td>
+                        <td style="font-size:11px; color:#64748b;">${o.date || o.order_date}</td>
+                        <td><button class="btn-del" onclick="deleteOrder('${child.key}')">Supprimer</button></td>
+                    </tr>`;
+            });
+            document.getElementById('count-orders').innerText = oCount;
+        });
+
+        // 3. جلب عدد المنتجات
+        db.ref('products').on('value', snap => {
+            document.getElementById('count-prods').innerText = snap.numChildren();
+        });
+    }
+
+    function resetUser(id) {
+        if(confirm("إجبار المستخدم على إعادة التسجيل؟")) {
+            db.ref('users/' + id).remove();
         }
-    </script>
+    }
+
+    function deleteOrder(id) {
+        if(confirm("مسح الطلبية؟")) {
+            db.ref('orders/' + id).remove();
+        }
+    }
+
+    loadData();
+</script>
 </body>
 </html>
