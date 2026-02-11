@@ -1,252 +1,276 @@
-
 <!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RACIM SHOP | Market & Messenger</title>
+    <title>RACIM SHOP | Super App</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --main: #2563eb; --messenger: #0084ff; --jumia: #f68b1e; --dark: #0f172a; --bg: #f1f5f9; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        :root { --main: #2563eb; --msg: #0084ff; --jumia: #f68b1e; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 70px; }
         
-        /* Navbar */
-        nav { background: var(--dark); color: white; padding: 10px 15px; position: sticky; top: 0; z-index: 1000; }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .logo-text { font-size: 22px; font-weight: bold; color: #fbbf24; letter-spacing: 1px; }
-        .search-box { display: flex; background: white; border-radius: 20px; padding: 6px 15px; gap: 10px; align-items: center; }
-        .search-box input { border: none; outline: none; width: 100%; font-size: 14px; color: #333; }
+        /* Header & Search */
+        nav { background: #1c1e21; color: white; padding: 10px 15px; position: sticky; top: 0; z-index: 1000; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .search-container { display: flex; background: #3a3b3c; border-radius: 20px; padding: 5px 15px; gap: 10px; }
+        .search-container input { border: none; background: none; color: white; width: 100%; outline: none; }
 
-        /* Navigation السفلي */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ddd; z-index: 1000; }
-        .nav-item { border: none; background: none; font-size: 22px; cursor: pointer; color: #64748b; text-align: center; flex: 1; }
+        /* Jumia Ads Slider (Banner) */
+        .promo-banner { background: var(--jumia); color: white; padding: 15px; margin: 10px; border-radius: 15px; text-align: center; font-weight: bold; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #ddd; z-index: 1000; }
+        .nav-item { border: none; background: none; font-size: 20px; cursor: pointer; color: #65676b; transition: 0.3s; }
         .nav-item.active { color: var(--main); }
-        .nav-item span { display: block; font-size: 10px; font-weight: bold; margin-top: 2px; }
 
-        /* Sections */
-        .section { display: none; padding: 10px; animation: fadeIn 0.2s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Chat Window Style */
+        .chat-footer { display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-top: 1px solid #eee; position: fixed; bottom: 0; width: 100%; box-sizing: border-box; }
+        .chat-btn { background: #f0f2f5; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; }
 
-        /* Jumia Style Cards */
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .p-card { background: white; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .p-card img { width: 100%; height: 120px; object-fit: contain; }
-        .p-price { color: var(--jumia); font-weight: bold; }
+        /* Section Visibility */
+        .page { display: none; padding: 10px; }
+        .page.active { display: block; }
 
-        /* Messenger List */
-        .chat-item { background: white; padding: 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; border-radius: 12px; }
-        .chat-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+        /* Admin Panel Card */
+        .admin-card { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid red; }
 
-        /* Auth */
-        .auth-card { max-width: 400px; margin: 30px auto; background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; }
-        .btn-primary { background: var(--main); color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        .hidden { display: none !important; }
-        .rtl { direction: rtl; text-align: right; }
+        .btn-add { position: fixed; bottom: 85px; right: 20px; background: var(--main); color: white; width: 55px; height: 55px; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 99; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <nav>
     <div class="nav-top">
-        <span class="logo-text">RACIM SHOP</span>
-        <select id="lang-select" onchange="changeLang(this.value)" style="width:auto; background:none; border:none; color:white; font-size:12px;">
-            <option value="fr">FR 🇫🇷</option>
-            <option value="ar">AR 🇩🇿</option>
-        </select>
+        <b style="color: #fbbf24; font-size: 20px;">RACIM SHOP</b>
+        <button id="admin-btn" class="hidden" onclick="showPage('admin')" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px;">Admin</button>
     </div>
-    <div class="search-box">
+    <div class="search-container">
         <span>🔍</span>
-        <input type="text" id="main-search" placeholder="Chercher produits, @username..." oninput="search()">
+        <input type="text" id="global-search" placeholder="Chercher un ami (@username)..." oninput="liveSearch()">
     </div>
 </nav>
 
-<div id="auth-screen" class="auth-card">
-    <h2 id="t-auth-title">Connexion</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="pass" placeholder="Password">
-    <div id="register-fields" class="hidden">
-        <input type="text" id="reg-name" placeholder="Nom Complet">
-        <input type="text" id="reg-user" placeholder="Username (@racim_10)">
-        <input type="tel" id="reg-phone" placeholder="Numéro de Téléphone">
-        <select id="reg-wilaya"></select> </div>
-    <button class="btn-primary" onclick="handleAuth()">Continuer</button>
-    <p onclick="toggleAuth()" id="t-toggle" style="color:var(--main); cursor:pointer; font-size:13px; margin-top:10px;">Créer un compte</p>
+<div id="auth-page" class="page active" style="text-align:center; padding-top:50px;">
+    <div style="background:white; padding:30px; border-radius:20px; margin:0 20px;">
+        <h2 id="auth-title">Connexion</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <div id="reg-box" class="hidden">
+            <input type="text" id="r-name" placeholder="Nom Complet">
+            <input type="text" id="r-user" placeholder="Username Unique (@)">
+            <input type="text" id="r-bio" placeholder="Bio (Ex: Vendeur de phones)">
+            <select id="r-wilaya"></select>
+        </div>
+        <button onclick="handleAuth()" style="background:var(--main); color:white; border:none; padding:12px; width:100%; border-radius:10px; margin-top:10px; font-weight:bold;">Continuer</button>
+        <p onclick="toggleAuth()" style="color:var(--main); cursor:pointer; margin-top:15px;">Créer un compte</p>
+    </div>
 </div>
 
-<div id="app-content" class="hidden">
+<div id="main-app" class="hidden">
     
-    <div id="tab-jumia" class="section active">
-        <h3 style="color:var(--jumia); border-left: 4px solid var(--jumia); padding-left:10px;">🧡 Mall Officiel</h3>
-        <div class="product-grid" id="jumia-list"></div>
+    <div id="page-home" class="page active">
+        <div class="promo-banner">🔥 OFFRES JUMIA : -50% sur les iPhones ! 🔥</div>
+        <div id="product-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
     </div>
 
-    <div id="tab-local" class="section">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3>📍 Local Market</h3>
-            <select id="local-city-filter" style="width:auto; padding:5px; border-radius:8px;" onchange="loadLocal()"></select>
-        </div>
-        <div id="local-list"></div>
-    </div>
-
-    <div id="tab-messenger" class="section">
-        <h3>💬 Messenger</h3>
-        <div id="chat-list">
-            <p style="text-align:center; color:gray; margin-top:20px;">Pas de messages pour le moment.</p>
-        </div>
-    </div>
-
-    <div id="tab-social" class="section">
-        <h3>👥 Social</h3>
-        <input type="text" id="user-search" placeholder="Chercher par @username ou Tel">
-        <button class="btn-primary" onclick="findUser()">Chercher</button>
-        <div id="social-results" style="margin-top:15px;"></div>
-    </div>
-
-    <div id="tab-profile" class="section">
-        <div style="text-align:center; background:white; padding:20px; border-radius:20px;">
-            <img id="my-avatar" src="" style="width:90px; height:90px; border-radius:50%; border:3px solid var(--main); object-fit:cover;">
-            <h2 id="my-name" style="margin:10px 0 2px;"></h2>
-            <p id="my-username" style="color:var(--main); margin:0;"></p>
-            <p id="my-wilaya" style="color:gray; font-size:12px;"></p>
-            <button onclick="logout()" style="background:#ef4444; color:white; border:none; margin-top:15px; padding:10px; border-radius:10px; cursor:pointer;">Déconnexion</button>
+    <div id="page-chat" class="page">
+        <h3>💬 Discussions</h3>
+        <div id="conversations-list"></div>
+        <div id="chat-window" class="hidden" style="position:fixed; inset:0; background:white; z-index:2000;">
+            <div style="background:var(--msg); color:white; padding:15px; display:flex; gap:10px; align-items:center;">
+                <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:20px;">←</button>
+                <b id="chat-target-name">Nom</b>
+            </div>
+            <div id="messages-box" style="height:70vh; overflow-y:auto; padding:10px;"></div>
+            <div class="chat-footer">
+                <button class="chat-btn">📷</button>
+                <button class="chat-btn">🎤</button>
+                <input type="text" id="msg-input" placeholder="Message..." style="flex:1; border:none; background:#f0f2f5; padding:10px; border-radius:20px;">
+                <button onclick="sendMsg()" style="border:none; color:var(--msg); background:none; font-weight:bold;">Envoyer</button>
+            </div>
         </div>
     </div>
 
+    <div id="page-social" class="page">
+        <h3>👥 Retrouver des amis</h3>
+        <div id="search-results"></div>
+    </div>
+
+    <div id="page-admin" class="page">
+        <h3 style="color:red;">🛡️ Tableau de Bord Admin</h3>
+        <div class="search-container" style="background:#ddd; margin-bottom:15px;">
+            <input type="text" id="admin-search" placeholder="Chercher un utilisateur..." oninput="adminFilter()">
+        </div>
+        <div id="admin-users-list"></div>
+    </div>
+
+    <div id="page-profile" class="page">
+        <div style="text-align:center;">
+            <img id="p-img" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--main);">
+            <h2 id="p-name" style="margin:5px 0;"></h2>
+            <p id="p-user" style="color:var(--main); margin:0;"></p>
+            <p id="p-bio" style="font-style:italic; color:#65676b;"></p>
+            <button onclick="auth.signOut()" style="background:#ddd; border:none; padding:10px; border-radius:10px; margin-top:20px;">Déconnexion</button>
+        </div>
+    </div>
+
+    <button class="btn-add" onclick="openAddProduct()">+</button>
 </div>
 
-<div class="bottom-nav hidden" id="bottom-bar">
-    <button class="nav-item active" onclick="showTab('jumia', this)">🛒<span>Shop</span></button>
-    <button class="nav-item" onclick="showTab('local', this)">📍<span>Local</span></button>
-    <button class="nav-item" onclick="showTab('messenger', this)">💬<span>Chat</span></button>
-    <button class="nav-item" onclick="showTab('social', this)">👥<span>Social</span></button>
-    <button class="nav-item" onclick="showTab('profile', this)">👤<span>Moi</span></button>
+<div id="modal-product" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; display:flex; align-items:center; justify-content:center;">
+    <div style="background:white; padding:20px; border-radius:20px; width:90%;">
+        <h3>Ajouter un produit</h3>
+        <input type="text" id="pt-title" placeholder="Nom du produit">
+        <input type="number" id="pt-price" placeholder="Prix (DA)">
+        <input type="file" id="pt-img" accept="image/*">
+        <button onclick="saveProduct()" class="btn-primary" style="background:var(--jumia); color:white; border:none; padding:10px; width:100%; border-radius:10px; font-weight:bold; margin-top:10px;">Publier</button>
+        <button onclick="document.getElementById('modal-product').classList.add('hidden')" style="width:100%; background:none; border:none; margin-top:10px;">Annuler</button>
+    </div>
+</div>
+
+<div class="bottom-nav hidden" id="navbar">
+    <button class="nav-item active" onclick="showPage('home', this)">🏠</button>
+    <button class="nav-item" onclick="showPage('social', this)">👥</button>
+    <button class="nav-item" onclick="showPage('chat', this)">💬</button>
+    <button class="nav-item" onclick="showPage('profile', this)">👤</button>
 </div>
 
 <script>
-    // --- Config Firebase ---
     const firebaseConfig = { apiKey: "AIzaSyBYNbsg0khZx3TdK2GyA3u4FpHOWnfliIs", databaseURL: "https://racimshop-60fb0-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    const auth = firebase.auth(), db = firebase.database();
 
     let isLogin = true;
-    let currentUserData = null;
+    const wilayas = ["16-Alger", "22-Sidi Bel Abbès", "31-Oran"]; // ... كملهم لـ 58
+    wilayas.forEach(w => document.getElementById('r-wilaya').innerHTML += `<option value="${w}">${w}</option>`);
 
-    // --- قائمة الولايات كاملة (1-69) ---
-    const allWilayas = [
-        "01-Adrar", "02-Chlef", "03-Laghouat", "04-Oum El Bouaghi", "05-Batna", "06-Béjaïa", "07-Biskra", "08-Béchar", "09-Blida", "10-Bouira",
-        "11-Tamanrasset", "12-Tébessa", "13-Tlemcen", "14-Tiaret", "15-Tizi Ouzou", "16-Alger", "17-Djelfa", "18-Jijel", "19-Sétif", "20-Saïda",
-        "21-Skikda", "22-Sidi Bel Abbès", "23-Annaba", "24-Guelma", "25-Constantine", "26-Médéa", "27-Mostaganem", "28-M'Sila", "29-Mascara", "30-Ouargla",
-        "31-Oran", "32-El Bayadh", "33-Illizi", "34-Bordj Bou Arreridj", "35-Boumerdès", "36-El Tarf", "37-Tindouf", "38-Tissemsilt", "39-El Oued", "40-Khenchela",
-        "41-Souk Ahras", "42-Tipaza", "43-Mila", "44-Aïn Defla", "45-Naâma", "46-Aïn Témouchent", "47-Ghardaïa", "48-Relizane", "49-Timimoun", "50-Bordj Badji Mokhtar",
-        "51-Ouled Djellal", "52-Béni Abbès", "53-In Salah", "54-In Guezzam", "55-Touggourt", "56-Djanet", "57-El M'Ghair", "58-El Meniaa"
-    ];
-    // إضافة ولايات إضافية إذا احتجت مستقبلاً حتى 69
-    for(let i=59; i<=69; i++) { allWilayas.push(i + "-Nouvelle Wilaya"); }
-
-    function setupWilayas() {
-        const selects = [document.getElementById('reg-wilaya'), document.getElementById('local-city-filter')];
-        selects.forEach(s => {
-            if(!s) return;
-            s.innerHTML = s.id.includes('filter') ? '<option value="">Toutes les villes</option>' : '<option value="">Choisir Wilaya</option>';
-            allWilayas.forEach(w => s.innerHTML += `<option value="${w}">${w}</option>`);
-        });
-    }
-
-    // --- نظام التبديل بين الأقسام ---
-    function showTab(id, btn) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('tab-'+id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        btn.classList.add('active');
+    function showPage(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        if(btn) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            btn.classList.add('active');
+        }
     }
 
     function toggleAuth() {
         isLogin = !isLogin;
-        document.getElementById('register-fields').classList.toggle('hidden', isLogin);
-        document.getElementById('t-auth-title').innerText = isLogin ? "Connexion" : "Inscription";
+        document.getElementById('reg-box').classList.toggle('hidden', isLogin);
+        document.getElementById('auth-title').innerText = isLogin ? "Connexion" : "Inscription";
     }
 
-    // --- التعامل مع الحسابات ---
     async function handleAuth() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
-        try {
-            if(isLogin) {
-                await auth.signInWithEmailAndPassword(email, pass);
-            } else {
-                const name = document.getElementById('reg-name').value;
-                const user = document.getElementById('reg-user').value;
-                const phone = document.getElementById('reg-phone').value;
-                const wilaya = document.getElementById('reg-wilaya').value;
-                if(!name || !user || !phone || !wilaya) return alert("Remplissez tout!");
-                const res = await auth.createUserWithEmailAndPassword(email, pass);
-                await db.ref('users/' + res.user.uid).set({
-                    name, username: user.startsWith('@') ? user : '@'+user, phone, wilaya,
-                    avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                    friends: 0, status: 'approved'
-                });
-            }
-        } catch(e) { alert(e.message); }
+        const email = document.getElementById('email').value, pass = document.getElementById('pass').value;
+        if(isLogin) {
+            auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+        } else {
+            const user = document.getElementById('r-user').value.trim();
+            const snap = await db.ref('users').orderByChild('username').equalTo(user).once('value');
+            if(snap.exists()) return alert("Username déjà pris!");
+
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.ref('users/' + res.user.uid).set({
+                name: document.getElementById('r-name').value,
+                username: user.startsWith('@') ? user : '@'+user,
+                bio: document.getElementById('r-bio').value,
+                wilaya: document.getElementById('r-wilaya').value,
+                avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                role: (email === "admin@racim.com") ? "admin" : "user" // حدد إيميل الأدمن هنا
+            });
+        }
     }
 
     auth.onAuthStateChanged(user => {
         if(user) {
             db.ref('users/' + user.uid).on('value', snap => {
-                currentUserData = snap.val();
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('bottom-bar').classList.remove('hidden');
-                document.getElementById('my-name').innerText = currentUserData.name;
-                document.getElementById('my-username').innerText = currentUserData.username;
-                document.getElementById('my-avatar').src = currentUserData.avatar;
-                document.getElementById('my-wilaya').innerText = "📍 " + currentUserData.wilaya;
-                loadJumia(); loadLocal();
+                const u = snap.val();
+                document.getElementById('auth-page').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('navbar').classList.remove('hidden');
+                document.getElementById('p-name').innerText = u.name;
+                document.getElementById('p-user').innerText = u.username;
+                document.getElementById('p-bio').innerText = u.bio;
+                document.getElementById('p-img').src = u.avatar;
+                if(u.role === "admin") {
+                    document.getElementById('admin-btn').classList.remove('hidden');
+                    loadAdminPanel();
+                }
+                loadProducts();
             });
         } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
-            document.getElementById('bottom-bar').classList.add('hidden');
+            location.reload();
         }
     });
 
-    function loadJumia() {
+    // --- Admin Search ---
+    function loadAdminPanel() {
+        db.ref('users').on('value', snap => {
+            const list = document.getElementById('admin-users-list'); list.innerHTML = '';
+            snap.forEach(c => {
+                const u = c.val();
+                list.innerHTML += `<div class="admin-card">
+                    <b>${u.name} (${u.username})</b><br><small>${u.wilaya}</small>
+                </div>`;
+            });
+        });
+    }
+
+    function adminFilter() {
+        const val = document.getElementById('admin-search').value.toLowerCase();
+        document.querySelectorAll('.admin-card').forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(val) ? 'block' : 'none';
+        });
+    }
+
+    // --- Products ---
+    function openAddProduct() { document.getElementById('modal-product').classList.remove('hidden'); }
+
+    async function saveProduct() {
+        const file = document.getElementById('pt-img').files[0];
+        const formData = new FormData(); formData.append("image", file);
+        const res = await fetch("https://api.imgbb.com/1/upload?key=6df707297960710609a6390176846175", {method:"POST", body:formData});
+        const d = await res.json();
+        
+        await db.ref('products').push({
+            title: document.getElementById('pt-title').value,
+            price: document.getElementById('pt-price').value,
+            img: d.data.url,
+            owner: auth.currentUser.uid
+        });
+        document.getElementById('modal-product').classList.add('hidden');
+    }
+
+    function loadProducts() {
         db.ref('products').on('value', snap => {
-            const list = document.getElementById('jumia-list'); list.innerHTML = '';
+            const list = document.getElementById('product-list'); list.innerHTML = '';
             snap.forEach(c => {
                 const p = c.val();
-                list.innerHTML += `<div class="p-card"><img src="${p.img}"><h4>${p.name}</h4><div class="p-price">${p.price} DA</div></div>`;
+                list.innerHTML += `<div style="background:white; padding:10px; border-radius:10px;">
+                    <img src="${p.img}" style="width:100%; height:100px; object-fit:contain;">
+                    <h4>${p.title}</h4><b style="color:var(--jumia)">${p.price} DA</b>
+                </div>`;
             });
         });
     }
 
-    function loadLocal() {
-        const city = document.getElementById('local-city-filter').value;
-        db.ref('local_market').on('value', snap => {
-            const list = document.getElementById('local-list'); list.innerHTML = '';
-            snap.forEach(c => {
-                const ad = c.val();
-                if(city === "" || ad.city === city) {
-                    list.innerHTML += `<div class="chat-item">
-                        <img src="${ad.img}" class="chat-img">
-                        <div style="flex:1"><b>${ad.title}</b><br><small>📍 ${ad.city}</small></div>
-                        <b style="color:var(--main)">${ad.price} DA</b>
+    function liveSearch() {
+        const val = document.getElementById('global-search').value;
+        if(val.startsWith('@')) {
+            showPage('social');
+            db.ref('users').orderByChild('username').startAt(val).endAt(val+"\uf8ff").once('value', snap => {
+                const res = document.getElementById('search-results'); res.innerHTML = '';
+                snap.forEach(c => {
+                    const u = c.val();
+                    res.innerHTML += `<div class="admin-card">
+                        <b>${u.name}</b> (${u.username}) <button onclick="addFriend('${c.key}')" style="float:right;">Ajouter</button>
                     </div>`;
-                }
+                });
             });
-        });
+        }
     }
-
-    function logout() { auth.signOut(); location.reload(); }
-    function changeLang(l) { document.body.classList.toggle('rtl', l === 'ar'); }
-    
-    setupWilayas();
 </script>
 </body>
 </html>
-
